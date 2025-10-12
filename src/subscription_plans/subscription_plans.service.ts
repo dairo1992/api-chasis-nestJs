@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateSubscriptionPlanDto } from './dto/create-subscription_plan.dto';
 import { UpdateSubscriptionPlanDto } from './dto/update-subscription_plan.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,7 +18,7 @@ export class SubscriptionPlansService {
     try {
       const existPlan = await this.subscriptionPlanRepository.findOne({ where: { name: createSubscriptionPlanDto.name } });
       if (existPlan) {
-        throw new ConflictException('Subscription plan already exists');
+        throw new NotFoundException('Subscription plan already exists');
       }
 
       const newPlan = this.subscriptionPlanRepository.create(createSubscriptionPlanDto);
@@ -26,7 +26,6 @@ export class SubscriptionPlansService {
       return { success: true, message: 'Subscription plan created successfully', data: newPlan };
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
-      // return { success: false, message: 'Error creating subscription plan', error: error.message ?? error.message };
     }
   }
 
@@ -35,16 +34,19 @@ export class SubscriptionPlansService {
       const plans = await this.subscriptionPlanRepository.find();
       return { success: true, message: 'Subscription plans retrieved successfully', data: [...plans] };
     } catch (error) {
-      return { success: false, message: 'Error getting subscription plans', error: error.message ?? error };
+      throw new InternalServerErrorException(error.message ?? error);
     }
   }
 
   async findOne(id: number): Promise<ServiceResponse<SubscriptionPlan>> {
     try {
       const plan = await this.subscriptionPlanRepository.findOne({ where: { id } }) ?? undefined;
+      if (!plan) {
+        throw new NotFoundException('Subscription plan not found');
+      }
       return { success: true, message: 'Subscription plan retrieved successfully', data: plan };
     } catch (error) {
-      return { success: false, message: 'Error getting subscription plan', error: error.message ?? error };
+      throw new InternalServerErrorException(error.message ?? error);
     }
   }
 
@@ -52,22 +54,26 @@ export class SubscriptionPlansService {
     try {
       const plan = await this.subscriptionPlanRepository.findOne({ where: { id } });
       if (!plan) {
-        return { success: false, message: 'Subscription plan not found' };
+        throw new NotFoundException('Subscription plan not found');
       }
       this.subscriptionPlanRepository.update(id, updateSubscriptionPlanDto);
       return { success: true, message: 'Subscription plan updated successfully' };
     } catch (error) {
-      return { success: false, message: 'Error updating subscription plan', error: error.message ?? error };
+      throw new InternalServerErrorException(error.message ?? error);
     }
 
   }
 
   async remove(id: number): Promise<ServiceResponse<SubscriptionPlan>> {
     try {
+      const plan = await this.subscriptionPlanRepository.findOne({ where: { id } });
+      if (!plan) {
+        throw new NotFoundException('Subscription plan not found');
+      }
       this.subscriptionPlanRepository.softDelete(id);
       return { success: true, message: 'Subscription plan deleted successfully' };
     } catch (error) {
-      return { success: false, message: 'Error deleting subscription plan', error: error.message ?? error };
+      throw new InternalServerErrorException(error.message ?? error);
     }
   }
 }

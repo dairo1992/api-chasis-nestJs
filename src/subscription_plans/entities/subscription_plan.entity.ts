@@ -1,5 +1,6 @@
-import { PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Entity } from "typeorm";
 
+@Entity()
 export class SubscriptionPlan {
     @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
     id: number;

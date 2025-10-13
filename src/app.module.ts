@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
-import { CompaniesModule } from './companies/companies.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfig } from './config/database.config';
-import { SubscriptionPlansModule } from './subscription_plans/subscription_plans.module';
+import { SubscriptionPlansModule } from './features/subscription_plans/subscription_plans.module';
+import { BranchesModule } from './features/branches/branches.module';
+import { CompaniesModule } from './features/companies/companies.module';
+
 
 @Module({
   imports: [
@@ -17,8 +19,9 @@ import { SubscriptionPlansModule } from './subscription_plans/subscription_plans
       imports: [ConfigModule],
       useClass: DatabaseConfig,
     }),
-    // CompaniesModule,
-    SubscriptionPlansModule
+    CompaniesModule,
+    SubscriptionPlansModule,
+    BranchesModule
   ],
   controllers: [],
   providers: [],

@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateSubscriptionPlanDto } from './dto/create-subscription_plan.dto';
 import { UpdateSubscriptionPlanDto } from './dto/update-subscription_plan.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SubscriptionPlan } from './entities/subscription_plan.entity';
 import { Repository } from 'typeorm';
-import { ServiceResponse } from '../common/interfaces/service-response.interface';
+import { ServiceResponse } from 'src/common/interfaces/service-response.interface';
+
 
 @Injectable()
 export class SubscriptionPlansService {
@@ -18,7 +19,7 @@ export class SubscriptionPlansService {
     try {
       const existPlan = await this.subscriptionPlanRepository.findOne({ where: { name: createSubscriptionPlanDto.name } });
       if (existPlan) {
-        throw new NotFoundException('Subscription plan already exists');
+        throw new InternalServerErrorException('Subscription plan already exists');
       }
 
       const newPlan = this.subscriptionPlanRepository.create(createSubscriptionPlanDto);

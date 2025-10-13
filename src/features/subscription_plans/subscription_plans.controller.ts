@@ -5,7 +5,7 @@ import { UpdateSubscriptionPlanDto } from './dto/update-subscription_plan.dto';
 
 @Controller('subscription-plans')
 export class SubscriptionPlansController {
-  constructor(private readonly subscriptionPlansService: SubscriptionPlansService) {}
+  constructor(private readonly subscriptionPlansService: SubscriptionPlansService) { }
 
   @Post()
   create(@Body() createSubscriptionPlanDto: CreateSubscriptionPlanDto) {
@@ -17,18 +17,18 @@ export class SubscriptionPlansController {
     return this.subscriptionPlansService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.subscriptionPlansService.findOne(+id);
+  @Get(':uuid')
+  findOne(@Param('uuid') uuid: string) {
+    return this.subscriptionPlansService.findOne(uuid);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubscriptionPlanDto: UpdateSubscriptionPlanDto) {
-    return this.subscriptionPlansService.update(+id, updateSubscriptionPlanDto);
+  @Patch(':uuid')
+  update(@Param('uuid') uuid: string, @Body() updateSubscriptionPlanDto: UpdateSubscriptionPlanDto) {
+    return this.subscriptionPlansService.update(uuid, updateSubscriptionPlanDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.subscriptionPlansService.remove(+id);
+  @Delete(':uuid')
+  remove(@Param('uuid') uuid: string) {
+    return this.subscriptionPlansService.remove(uuid);
   }
 }

@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsPhoneNumber, IsString, IsUrl } from "class-validator";
+import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsPhoneNumber, IsString, IsUrl, IsUUID, MaxLength, Min, MinLength } from "class-validator";
 
 export class CreateCompanyDto {
 
@@ -12,6 +12,9 @@ export class CreateCompanyDto {
 
     @IsNotEmpty({ message: 'Document Number is required' })
     @IsNumber()
+    // @MinLength(8)
+    //@MaxLength(10)
+    @Min(1)
     document_number: number;
 
     @IsNotEmpty({ message: 'Adress is required' })
@@ -35,11 +38,12 @@ export class CreateCompanyDto {
     email: string;
 
     @IsNotEmpty({ message: 'Phone is required' })
-    @IsPhoneNumber()
+    @IsPhoneNumber('CO', { message: 'Phone must be a valid Colombian phone number' })
     phone: string;
 
     @IsOptional()
-    @IsUrl({}, { message: 'Website must be a valid URL' })
+    // @IsUrl({  require_tld: false }, { message: 'Website must be a valid URL' })
+    @IsString()
     Website: string;
 
     //usuario dueño de la compañia
@@ -48,11 +52,12 @@ export class CreateCompanyDto {
     ownerUserId: number;
 
     @IsOptional()
-    @IsUrl({}, { message: 'Logo URL must be a valid URL' })
+    // @IsUrl({}, { message: 'Logo URL must be a valid URL' })
+    @IsString()
     logo_url: string;
 
     @IsNotEmpty({ message: 'Subscription Plan UUID is required' })
-    @IsNumber()
+    @IsUUID()
     subscription_plan_uuid: string;
 
     @IsBoolean()

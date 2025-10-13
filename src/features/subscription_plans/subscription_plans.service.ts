@@ -39,9 +39,9 @@ export class SubscriptionPlansService {
     }
   }
 
-  async findOne(id: number): Promise<ServiceResponse<SubscriptionPlan>> {
+  async findOne(uuid: string): Promise<ServiceResponse<SubscriptionPlan>> {
     try {
-      const plan = await this.subscriptionPlanRepository.findOne({ where: { id } }) ?? undefined;
+      const plan = await this.subscriptionPlanRepository.findOne({ where: { uuid } }) ?? undefined;
       if (!plan) {
         throw new NotFoundException('Subscription plan not found');
       }
@@ -51,13 +51,13 @@ export class SubscriptionPlansService {
     }
   }
 
-  async update(id: number, updateSubscriptionPlanDto: UpdateSubscriptionPlanDto): Promise<ServiceResponse<SubscriptionPlan>> {
+  async update(uuid: string, updateSubscriptionPlanDto: UpdateSubscriptionPlanDto): Promise<ServiceResponse<SubscriptionPlan>> {
     try {
-      const plan = await this.subscriptionPlanRepository.findOne({ where: { id } });
+      const plan = await this.subscriptionPlanRepository.findOne({ where: { uuid } });
       if (!plan) {
         throw new NotFoundException('Subscription plan not found');
       }
-      this.subscriptionPlanRepository.update(id, updateSubscriptionPlanDto);
+      this.subscriptionPlanRepository.update(uuid, updateSubscriptionPlanDto);
       return { success: true, message: 'Subscription plan updated successfully' };
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
@@ -65,13 +65,13 @@ export class SubscriptionPlansService {
 
   }
 
-  async remove(id: number): Promise<ServiceResponse<SubscriptionPlan>> {
+  async remove(uuid: string): Promise<ServiceResponse<SubscriptionPlan>> {
     try {
-      const plan = await this.subscriptionPlanRepository.findOne({ where: { id } });
+      const plan = await this.subscriptionPlanRepository.findOne({ where: { uuid } });
       if (!plan) {
         throw new NotFoundException('Subscription plan not found');
       }
-      this.subscriptionPlanRepository.softDelete(id);
+      this.subscriptionPlanRepository.softDelete(plan.id);
       return { success: true, message: 'Subscription plan deleted successfully' };
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);

@@ -46,7 +46,7 @@ export class CompaniesService {
 
   async findOne(uuid: string): Promise<ServiceResponse<Company>> {
     try {
-      const existCompany = await this.companyRepository.findOne({ where: { uuid: uuid } });
+      const existCompany = await this.companyRepository.findOne({ where: { uuid } });
       if (!existCompany) {
         throw new InternalServerErrorException('Company not found');
       }
@@ -58,12 +58,12 @@ export class CompaniesService {
 
   async update(uuid: string, updateCompanyDto: UpdateCompanyDto): Promise<ServiceResponse<Company>> {
     try {
-      const existCompany = await this.companyRepository.findOne({ where: { uuid: uuid } });
+      const existCompany = await this.companyRepository.findOne({ where: { uuid } });
       if (!existCompany) {
         throw new InternalServerErrorException('Company not found');
       }
 
-      const existPlan = await this.subscriptionPlanRepository.findOne({ where: { uuid: updateCompanyDto.subscription_plan_uuid } });
+      const existPlan = await this.subscriptionPlanRepository.findOne({ where: { uuid } });
       if (!existPlan) {
         throw new InternalServerErrorException('Subscription plan not found');
       }
@@ -76,7 +76,7 @@ export class CompaniesService {
   }
 
   async remove(uuid: string): Promise<ServiceResponse<Company>> {
-    const existCompany = await this.companyRepository.findOne({ where: { uuid: uuid } });
+    const existCompany = await this.companyRepository.findOne({ where: { uuid } });
     if (!existCompany) {
       throw new InternalServerErrorException('Company not found');
     }

@@ -50,12 +50,12 @@ export class Company {
     phone: string;
 
     @Expose()
-    @Column({ type: 'varchar', length: 100 })
+    @Column({ type: 'varchar', length: 100,nullable: true })
     Website: string;
 
     //usuario dueño de la compañia
     @Expose()
-    @Column({ name: 'owner_user_id' })
+    @Column({ name: 'owner_user_id', nullable: true })
     ownerUserId: number;
 
     @Expose()
@@ -65,7 +65,7 @@ export class Company {
     @Expose()
     @OneToOne(() => SubscriptionPlan, { eager: true })
     @JoinColumn({ name: 'subscription_plan_uuid' })
-    subscription_plan_uuid: string;
+    subscription_plan_id: number;
 
     @Expose()
     @Column({ name: 'is_active', type: 'boolean', default: true })

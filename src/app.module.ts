@@ -5,7 +5,9 @@ import { DatabaseConfig } from './config/database.config';
 import { SubscriptionPlansModule } from './features/subscription_plans/subscription_plans.module';
 import { BranchesModule } from './features/branches/branches.module';
 import { CompaniesModule } from './features/companies/companies.module';
-
+import { MenuModule } from './features/menu/menu.module';
+import { PermissionsModule } from './features/permissions/permissions.module';
+import { RolesModule } from './features/roles/roles.module';
 
 @Module({
   imports: [
@@ -21,7 +23,10 @@ import { CompaniesModule } from './features/companies/companies.module';
     }),
     CompaniesModule,
     SubscriptionPlansModule,
-    BranchesModule
+    BranchesModule,
+    MenuModule,
+    PermissionsModule,
+    RolesModule,
   ],
   controllers: [],
   providers: [],

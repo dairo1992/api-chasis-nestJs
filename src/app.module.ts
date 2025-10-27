@@ -8,6 +8,7 @@ import { CompaniesModule } from './features/companies/companies.module';
 import { MenuModule } from './features/menu/menu.module';
 import { PermissionsModule } from './features/permissions/permissions.module';
 import { RolesModule } from './features/roles/roles.module';
+import { UserModule } from './features/user/user.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RolesModule } from './features/roles/roles.module';
     MenuModule,
     PermissionsModule,
     RolesModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],

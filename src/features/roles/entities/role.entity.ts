@@ -1,5 +1,4 @@
 import { Expose } from 'class-transformer';
-import { Menus } from 'src/features/menu/entities/menu.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,11 +6,12 @@ import {
   BeforeInsert,
   CreateDateColumn,
   DeleteDateColumn,
-  JoinColumn,
-  OneToOne,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { Company } from '../../companies/entities/company.entity';
 
 @Entity()
 export class Role {
@@ -29,6 +29,14 @@ export class Role {
   @Expose()
   @Column({ type: 'text', nullable: true })
   description: string;
+
+  @Expose()
+  @Column({ name: 'company_id', type: 'bigint', unsigned: true, nullable: true })
+  companyId: number | null;
+
+  @ManyToOne(() => Company, (company) => company.roles)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
 
   @Column({ type: 'boolean', default: false })
   is_system_role: boolean;
@@ -48,10 +56,10 @@ export class Role {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
   deletedAt: Date;
 
-  @Expose()
-  @OneToOne(() => Menus, { eager: true })
-  @JoinColumn({ name: 'menu_uuid' })
-  subscription_plan_id: number;
+  // @Expose()
+  // @OneToOne(() => Menus, { eager: true })
+  // @JoinColumn({ name: 'menu_uuid' })
+  // subscription_plan_id: number;
 
   @BeforeInsert()
   generateUuid() {

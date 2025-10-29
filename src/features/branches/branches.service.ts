@@ -14,7 +14,7 @@ export class BranchesService {
     private readonly branchRepository: Repository<Branch>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
-  ) { }
+  ) {}
 
   async create(
     createBranchDto: CreateBranchDto,
@@ -22,6 +22,7 @@ export class BranchesService {
     try {
       const existCompany = await this.companyRepository.findOne({
         where: { uuid: createBranchDto.company_uuid },
+        relations: ['branches', 'planUsages', 'planUsages.plan'],
       });
 
       if (!existCompany) {
@@ -37,6 +38,23 @@ export class BranchesService {
 
       if (existBranch) {
         throw new InternalServerErrorException('Branch already exists');
+      }
+
+      const activePlan = existCompany.planUsages.find(
+        (usage) => usage.isActive,
+      );
+      if (!activePlan) {
+        throw new InternalServerErrorException(
+          'No active plan found for the company',
+        );
+      }
+
+      if (
+        existCompany.branches.length >= activePlan.plan.max_branches_per_company
+      ) {
+        throw new InternalServerErrorException(
+          'Branch limit reached for the current plan',
+        );
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

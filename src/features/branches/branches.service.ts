@@ -35,16 +35,16 @@ export class BranchesService {
       const existBranch = await this.branchRepository.findOne({
         where: {
           name: createBranchDto.name.toLocaleUpperCase(),
-          company: existCompany,
         },
       });
 
       if (existBranch) {
-        throw new InternalServerErrorException('Branch already exists');
+        if (existBranch.company_uuid === existCompany.uuid) {
+          throw new InternalServerErrorException('Branch already exists');
+        }
       }
 
       const activePlan = existCompany.planUsages;
-      console.log(activePlan);
 
       if (!activePlan) {
         throw new InternalServerErrorException(

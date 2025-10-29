@@ -67,6 +67,10 @@ export class Branch {
   @Expose()
   company: Company;
 
+  @Expose()
+  @Column({ name: 'company_uuid', type: 'char', length: 36 })
+  company_uuid: string;
+  
   @BeforeInsert()
   generateUuid() {
     if (!this.uuid) {

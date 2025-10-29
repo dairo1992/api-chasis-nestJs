@@ -6,6 +6,7 @@ import {
   DeleteDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -97,10 +98,10 @@ export class Company {
   branches: Branch[];
 
   @Expose()
-  @OneToMany(() => CompanyPlanUsage, (planUsage) => planUsage.company, {
+  @OneToOne(() => CompanyPlanUsage, (planUsage) => planUsage.company, {
     eager: true,
   })
-  planUsages: CompanyPlanUsage[];
+  planUsages: CompanyPlanUsage;
 
   @BeforeInsert()
   generateUuid() {

@@ -24,21 +24,37 @@ export class CompanyPlanUsage {
   @Column({ type: 'char', length: 36, unique: true })
   uuid: string;
 
-  @Expose()
-  @Column({ name: 'company_id', type: 'bigint', unsigned: true })
-  companyId: number;
-
-  @ManyToOne(() => Company)
-  @JoinColumn({ name: 'company_id' })
+  @ManyToOne(() => Company, (company) => company.planUsages)
+  @JoinColumn({ name: 'company_uuid', referencedColumnName: 'uuid' })
   company: Company;
 
-  @Expose()
-  @Column({ name: 'plan_id', type: 'bigint', unsigned: true })
-  planId: number;
-
-  @ManyToOne(() => SubscriptionPlan)
-  @JoinColumn({ name: 'plan_id' })
+  @ManyToOne(() => SubscriptionPlan, (plan) => plan.planUsages)
+  @JoinColumn({ name: 'plan_uuid', referencedColumnName: 'uuid' })
   plan: SubscriptionPlan;
+
+  @Expose()
+  @Column({ name: 'max_branches_per_company', type: 'int', default: 0 })
+  max_branches_per_company: number;
+
+  @Expose()
+  @Column({ name: 'max_users_per_company', type: 'int', default: 0 })
+  max_users_per_company: number;
+
+  @Expose()
+  @Column({ name: 'max_roles_per_company', type: 'int', default: 0 })
+  max_roles_per_company: number;
+
+  @Expose()
+  @Column({ name: 'current_branches_count', type: 'int', default: 0 })
+  current_branches_count: number;
+
+  @Expose()
+  @Column({ name: 'current_users_count', type: 'int', default: 0 })
+  current_users_count: number;
+
+  @Expose()
+  @Column({ name: 'current_roles_count', type: 'int', default: 0 })
+  current_roles_count: number;
 
   @Expose()
   @Column({ name: 'start_date', type: 'timestamp' })
@@ -47,10 +63,6 @@ export class CompanyPlanUsage {
   @Expose()
   @Column({ name: 'end_date', type: 'timestamp', nullable: true })
   endDate: Date | null;
-
-  @Expose()
-  @Column({ name: 'is_active', type: 'boolean', default: true })
-  isActive: boolean;
 
   @Expose()
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })

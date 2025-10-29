@@ -6,6 +6,7 @@ import { Branch } from './entities/branch.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Company } from '../companies/entities/company.entity';
+import { CompanyPlanUsage } from '../companies/entities/company_plan_usage.entity';
 
 @Injectable()
 export class BranchesService {
@@ -14,7 +15,9 @@ export class BranchesService {
     private readonly branchRepository: Repository<Branch>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
-  ) {}
+    @InjectRepository(CompanyPlanUsage)
+    private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
+  ) { }
 
   async create(
     createBranchDto: CreateBranchDto,
@@ -31,7 +34,7 @@ export class BranchesService {
 
       const existBranch = await this.branchRepository.findOne({
         where: {
-          name: createBranchDto.name,
+          name: createBranchDto.name.toLocaleUpperCase(),
           company: existCompany,
         },
       });
@@ -40,33 +43,34 @@ export class BranchesService {
         throw new InternalServerErrorException('Branch already exists');
       }
 
-      const activePlan = existCompany.planUsages.find(
-        (usage) => usage.isActive,
-      );
+      const activePlan = existCompany.planUsages;
+      console.log(activePlan);
+
       if (!activePlan) {
         throw new InternalServerErrorException(
           'No active plan found for the company',
         );
       }
 
-      if (
-        existCompany.branches.length >= activePlan.plan.max_branches_per_company
-      ) {
+      if (existCompany.branches.length >= activePlan.max_branches_per_company) {
         throw new InternalServerErrorException(
           'Branch limit reached for the current plan',
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { company_uuid, ...branchData } = createBranchDto;
       const newBranch = this.branchRepository.create({
-        ...branchData,
+        ...createBranchDto,
+        name: createBranchDto.name.toLocaleUpperCase(),
         company: existCompany,
       });
       await this.branchRepository.save(newBranch);
-
+      await this.companyPlanUsageRepository.update(activePlan.id, {
+        current_branches_count: activePlan.current_branches_count + 1,
+      });
+      newBranch.company.planUsages.current_branches_count =
+        activePlan.current_branches_count + 1;
       return {
-        success: true,
+        success: false,
         message: 'Branch created successfully',
         data: newBranch,
       };

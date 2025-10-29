@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceResponse } from 'src/common/interfaces/service-response.interface';
 import { SubscriptionPlan } from '../subscription_plans/entities/subscription_plan.entity';
+import { CompanyPlanUsage } from './entities/company_plan_usage.entity';
 
 @Injectable()
 export class CompaniesService {
@@ -14,6 +15,8 @@ export class CompaniesService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(SubscriptionPlan)
     private readonly subscriptionPlanRepository: Repository<SubscriptionPlan>,
+    @InjectRepository(CompanyPlanUsage)
+    private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
   ) { }
 
   async create(
@@ -36,6 +39,17 @@ export class CompaniesService {
 
       const newCompany = this.companyRepository.create(createCompanyDto);
       await this.companyRepository.save(newCompany);
+
+      const newPlanUsage = this.companyPlanUsageRepository.create({
+        company: newCompany,
+        plan: existPlan,
+        startDate: new Date(),
+        max_branches_per_company: existPlan.max_branches_per_company,
+        max_users_per_company: existPlan.max_users_per_company,
+        max_roles_per_company: existPlan.max_roles_per_company,
+      });
+      await this.companyPlanUsageRepository.save(newPlanUsage);
+
       return {
         success: true,
         message: 'Company created successfully',

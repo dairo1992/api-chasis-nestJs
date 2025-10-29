@@ -48,7 +48,9 @@ export class CompaniesService {
 
   async findAll(): Promise<ServiceResponse<Company[]>> {
     try {
-      const companies = await this.companyRepository.find();
+      const companies = await this.companyRepository.find({
+        relations: ['branches', 'planUsages', 'planUsages.plan'],
+      });
       return {
         success: true,
         message: 'Companies retrieved successfully',
@@ -63,6 +65,7 @@ export class CompaniesService {
     try {
       const existCompany = await this.companyRepository.findOne({
         where: { uuid },
+        relations: ['branches', 'planUsages', 'planUsages.plan'],
       });
       if (!existCompany) {
         throw new InternalServerErrorException('Company not found');

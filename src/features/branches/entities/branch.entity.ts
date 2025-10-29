@@ -7,7 +7,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -28,7 +28,7 @@ export class Branch {
   name: string;
 
   @Expose()
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   phone: number;
 
   @Expose()
@@ -44,7 +44,7 @@ export class Branch {
   state: number;
 
   @Expose()
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   manager_user_id: number;
 
   @Expose()
@@ -62,10 +62,10 @@ export class Branch {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
   deletedAt: Date;
 
+  @ManyToOne(() => Company, (company) => company.branches)
+  @JoinColumn({ name: 'company_uuid', referencedColumnName: 'uuid' })
   @Expose()
-  @OneToOne(() => Company, { eager: true })
-  @JoinColumn({ name: 'company_uuid' })
-  company_uuid: string;
+  company: Company;
 
   @BeforeInsert()
   generateUuid() {

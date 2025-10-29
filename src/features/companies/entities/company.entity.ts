@@ -11,6 +11,8 @@ import {
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Role } from '../../roles/entities/role.entity';
+import { Branch } from 'src/features/branches/entities/branch.entity';
+import { CompanyPlanUsage } from './company_plan_usage.entity';
 
 @Entity()
 @Exclude()
@@ -86,8 +88,19 @@ export class Company {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
   deletedAt: Date;
 
+  @Expose()
   @OneToMany(() => Role, (role) => role.company, { eager: true })
   roles: Role[];
+
+  @Expose()
+  @OneToMany(() => Branch, (branch) => branch.company, { eager: true })
+  branches: Branch[];
+
+  @Expose()
+  @OneToMany(() => CompanyPlanUsage, (planUsage) => planUsage.company, {
+    eager: true,
+  })
+  planUsages: CompanyPlanUsage[];
 
   @BeforeInsert()
   generateUuid() {

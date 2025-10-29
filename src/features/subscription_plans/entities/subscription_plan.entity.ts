@@ -7,8 +7,10 @@ import {
   Entity,
   DeleteDateColumn,
   BeforeInsert,
+  OneToMany,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { CompanyPlanUsage } from '../../companies/entities/company_plan_usage.entity';
 
 @Entity()
 @Exclude()
@@ -70,6 +72,9 @@ export class SubscriptionPlan {
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
   deletedAt: Date;
+
+  @OneToMany(() => CompanyPlanUsage, (planUsage) => planUsage.plan)
+  planUsages: CompanyPlanUsage[];
 
   @BeforeInsert()
   generateUuid() {

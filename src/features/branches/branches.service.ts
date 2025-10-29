@@ -23,28 +23,29 @@ export class BranchesService {
       const existCompany = await this.companyRepository.findOne({
         where: { uuid: createBranchDto.company_uuid },
       });
+
       if (!existCompany) {
         throw new InternalServerErrorException('Company not found');
       }
 
-      console.log({
-        name: createBranchDto.name?.toLocaleUpperCase(),
-        company_uuid: existCompany.uuid,
-      });
       const existBranch = await this.branchRepository.findOne({
         where: {
-          name: createBranchDto.name?.toLocaleUpperCase(),
-          company_uuid: existCompany.uuid,
+          name: createBranchDto.name,
+          company: existCompany,
         },
       });
-      // if (existBranch) {
-      //   throw new InternalServerErrorException('Branch already exists');
-      // }
+
+      if (existBranch) {
+        throw new InternalServerErrorException('Branch already exists');
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { company_uuid, ...branchData } = createBranchDto;
       const newBranch = this.branchRepository.create({
-        ...createBranchDto,
-        company_uuid: existCompany.uuid,
+        ...branchData,
+        company: existCompany,
       });
-      //  await this.branchRepository.save(newBranch);
+      await this.branchRepository.save(newBranch);
 
       return {
         success: true,
@@ -107,9 +108,11 @@ export class BranchesService {
         throw new InternalServerErrorException('Company not found');
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { company_uuid, ...branchData } = updateBranchDto;
       await this.branchRepository.update(existBranch.id, {
-        ...updateBranchDto,
-        company_uuid: existCompany.uuid,
+        ...branchData,
+        company: existCompany,
       });
       return { success: true, message: 'Company updated successfully' };
     } catch (error) {

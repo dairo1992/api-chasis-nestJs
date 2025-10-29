@@ -86,7 +86,7 @@ export class Company {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
   deletedAt: Date;
 
-  @OneToMany(() => Role, (role) => role.company)
+  @OneToMany(() => Role, (role) => role.company, { eager: true })
   roles: Role[];
 
   @BeforeInsert()

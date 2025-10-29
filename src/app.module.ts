@@ -9,6 +9,9 @@ import { MenuModule } from './features/menu/menu.module';
 import { PermissionsModule } from './features/permissions/permissions.module';
 import { RolesModule } from './features/roles/roles.module';
 import { UserModule } from './features/user/user.module';
+import { AuditLogsModule } from './features/audit-logs/audit-logs.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 @Module({
   imports: [
@@ -29,8 +32,14 @@ import { UserModule } from './features/user/user.module';
     PermissionsModule,
     RolesModule,
     UserModule,
+    AuditLogsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule {}

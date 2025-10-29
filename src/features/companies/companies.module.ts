@@ -13,5 +13,6 @@ import { CompanyPlanUsage } from './entities/company_plan_usage.entity';
   ],
   controllers: [CompaniesController],
   providers: [CompaniesService],
+  exports: [TypeOrmModule],
 })
 export class CompaniesModule {}

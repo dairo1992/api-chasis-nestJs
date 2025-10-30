@@ -35,7 +35,6 @@ export class Role {
     name: 'company_uuid',
     type: 'char',
     length: 36,
-    unsigned: true,
     nullable: true,
   })
   company_uuid: string | null;

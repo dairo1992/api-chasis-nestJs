@@ -17,12 +17,14 @@ export class RolePermissions {
   id: number;
 
   @Expose()
-  @ManyToOne(() => Role, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Role, (role) => role.uuid, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_uuid' })
   role: Role;
 
   @Expose()
-  @ManyToOne(() => Permission, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Permission, (permission) => permission.uuid, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'permission_uuid' })
   permission: Permission;
 

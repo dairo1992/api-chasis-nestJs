@@ -1,4 +1,10 @@
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateRoleDto {
   @IsNotEmpty()
@@ -12,4 +18,8 @@ export class CreateRoleDto {
   @IsNotEmpty()
   @IsBoolean()
   is_system_role: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  company_uuid: string;
 }

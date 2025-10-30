@@ -31,11 +31,17 @@ export class Role {
   description: string;
 
   @Expose()
-  @Column({ name: 'company_id', type: 'bigint', unsigned: true, nullable: true })
-  companyId: number | null;
+  @Column({
+    name: 'company_uuid',
+    type: 'char',
+    length: 36,
+    unsigned: true,
+    nullable: true,
+  })
+  company_uuid: string | null;
 
   @ManyToOne(() => Company, (company) => company.roles)
-  @JoinColumn({ name: 'company_id' })
+  @JoinColumn({ name: 'company_uuid' })
   company: Company;
 
   @Column({ type: 'boolean', default: false })

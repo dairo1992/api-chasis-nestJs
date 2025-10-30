@@ -1,11 +1,56 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Company } from '../companies/entities/company.entity';
+import { RolePermissions } from './entities/role-permissions.entity';
+import { Role } from './entities/role.entity';
+import { ServiceResponse } from 'src/common/interfaces/service-response.interface';
 
 @Injectable()
 export class RolesService {
-  create(createRoleDto: CreateRoleDto) {
-    return 'This action adds a new role';
+  constructor(
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
+    @InjectRepository(RolePermissions)
+    private readonly companyPlanUsageRepository: Repository<RolePermissions>,
+  ) { }
+
+  async create(createRoleDto: CreateRoleDto): Promise<ServiceResponse<Role>> {
+    try {
+      const existRole = await this.roleRepository.findOne({
+        where: { name: createRoleDto.name.toLocaleUpperCase() },
+      });
+
+      if (existRole) {
+        if (
+          existRole.company_uuid != null &&
+          existRole.company_uuid === createRoleDto.company_uuid
+        ) {
+          throw new InternalServerErrorException('Role already exists');
+        }
+        throw new InternalServerErrorException('Role already exists');
+      }
+
+      const existCompany = await this.companyRepository.findOne({
+        where: { uuid: createRoleDto.company_uuid },
+      });
+      console.log(existCompany);
+
+      if (!existCompany) {
+        throw new InternalServerErrorException('Company not found');
+      }
+      return {
+        success: true,
+        message: 'Role created successfully',
+        data: existRole!,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
   }
 
   findAll() {

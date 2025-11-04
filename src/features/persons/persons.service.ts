@@ -9,7 +9,6 @@ import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '../roles/entities/role.entity';
-import { CreateUserDto } from '../user/dto/create-user.dto';
 
 @Injectable()
 export class PersonsService {
@@ -19,7 +18,7 @@ export class PersonsService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(Role)
-    private readonly RoleRepository: Repository<Company>,
+    private readonly roleRepository: Repository<Role>,
     @InjectRepository(CompanyPlanUsage)
     private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
     @InjectRepository(User)
@@ -46,7 +45,7 @@ export class PersonsService {
         );
       }
 
-      const role = await this.RoleRepository.findOne({
+      const role = await this.roleRepository.findOne({
         where: { uuid: createPersonDto.role_uuid },
       });
       if (!role) {
@@ -71,23 +70,22 @@ export class PersonsService {
       });
       await this.personRepository.save(newPerson);
 
-      // if (createPersonDto.create_user) {
-      //   const existUser = await this.userRepository.findOne({
-      //     where: { person: newPerson },
-      //   });
-      //   if (existUser) {
-      //     throw new InternalServerErrorException('User already exists');
-      //   }
-      //   console.log(newPerson);
+      if (createPersonDto.create_user) {
+        const existUser = await this.userRepository.findOne({
+          where: { person: newPerson },
+        });
+        if (existUser) {
+          throw new InternalServerErrorException('User already exists');
+        }
 
-      //   const userPartial: CreateUserDto = {
-      //     user: createPersonDto.email,
-      //     password: createPersonDto.document_number,
-      //     person_uuid: newPerson.uuid,
-      //   };
-      //   const newUser = this.userRepository.create(userPartial);
-      //   await this.userRepository.save(newUser);
-      // }
+        const userPartial: Partial<User> = {
+          user: createPersonDto.email,
+          password: createPersonDto.document_number,
+          person: newPerson,
+        };
+        const newUser = this.userRepository.create(userPartial);
+        await this.userRepository.save(newUser);
+      }
 
       planUsage!.current_users_count += 1;
       await this.companyPlanUsageRepository.save(planUsage!);

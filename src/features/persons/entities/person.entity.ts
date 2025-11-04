@@ -64,11 +64,11 @@ export class Person {
   city: string;
 
   @ManyToOne(() => Company, (company) => company.uuid)
-  @JoinColumn({ name: 'company_uuid' })
+  @JoinColumn({ name: 'company_uuid', referencedColumnName: 'uuid' })
   company: Company;
 
   @ManyToOne(() => Role, (role) => role.uuid)
-  @JoinColumn({ name: 'role_uuid' })
+  @JoinColumn({ name: 'role_uuid', referencedColumnName: 'uuid' })
   role: Role;
 
   @Expose()

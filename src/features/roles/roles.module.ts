@@ -10,5 +10,6 @@ import { CompaniesModule } from '../companies/companies.module';
   imports: [TypeOrmModule.forFeature([Role, RolePermissions]), CompaniesModule],
   controllers: [RolesController],
   providers: [RolesService],
+  exports: [TypeOrmModule],
 })
-export class RolesModule {}
+export class RolesModule { }

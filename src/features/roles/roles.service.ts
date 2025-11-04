@@ -65,8 +65,19 @@ export class RolesService {
     }
   }
 
-  findAll() {
-    return `This action returns all roles`;
+  async findAllByCompany(company_uuid: string): Promise<ServiceResponse<Role[]>> {
+    try {
+      const roles = await this.roleRepository.find({
+        where: { company_uuid },
+      });
+      return {
+        success: true,
+        message: 'Roles found successfully',
+        data: roles,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
   }
 
   findOne(id: number) {

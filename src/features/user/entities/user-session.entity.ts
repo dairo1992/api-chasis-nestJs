@@ -8,7 +8,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Company } from '../../companies/entities/company.entity';
 
 @Entity({ name: 'user_sessions' })
 export class UserSession {
@@ -18,10 +17,6 @@ export class UserSession {
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'user_uuid' })
   user: User;
-
-  @ManyToOne(() => Company, (company) => company.uuid)
-  @JoinColumn({ name: 'company_uuid' })
-  company: Company;
 
   @Column({ name: 'session_token', type: 'varchar', length: 255, unique: true })
   sessionToken: string;

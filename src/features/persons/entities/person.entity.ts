@@ -25,19 +25,19 @@ export class Person {
 
   @Expose()
   @Column({ type: 'varchar', length: 100, unique: true })
-  documentType: string;
+  document_type: string;
 
   @Expose()
   @Column({ type: 'varchar', length: 100, unique: true })
-  documentNumber: string;
+  document_number: string;
 
   @Expose()
   @Column({ name: 'first_name', type: 'varchar', length: 100 })
-  firstName: string;
+  first_name: string;
 
   @Expose()
   @Column({ name: 'last_name', type: 'varchar', length: 100 })
-  lastName: string;
+  last_name: string;
 
   @Expose()
   @Column({ type: 'varchar', length: 100, unique: true })

@@ -1,4 +1,3 @@
-import { Company } from 'src/features/companies/entities/company.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -27,10 +26,6 @@ export class UserToken {
   @JoinColumn({ name: 'user_uuid' })
   user: User;
 
-  @ManyToOne(() => Company, (company) => company.uuid)
-  @JoinColumn({ name: 'company_uuid' })
-  company: Company;
-
   @Column({
     name: 'token_type',
     type: 'enum',
@@ -40,12 +35,6 @@ export class UserToken {
 
   @Column({ name: 'token_hash', type: 'varchar', length: 255 })
   tokenHash: string;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  name: string | null;
-
-  @Column({ type: 'json', nullable: true })
-  scopes: JSON | null;
 
   @Column({ name: 'expires_at', type: 'timestamp', nullable: true })
   expiresAt: Date | null;

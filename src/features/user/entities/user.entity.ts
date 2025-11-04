@@ -35,10 +35,22 @@ export class User {
   password: string;
 
   @Expose()
-  //@Column({ name: 'person_uuid', type: 'char', length: 36 })
-  @OneToOne(() => Person, { eager: true })
-  @JoinColumn({ name: 'person_uuid' })
-  personUuid: string;
+  @OneToOne(() => Person, (person) => person.uuid, { eager: true })
+  @JoinColumn({ name: 'person_uuid', referencedColumnName: 'uuid' })
+  person: Person;
+
+  @Column({ name: 'is_verified', type: 'boolean', default: false })
+  isVerified: boolean;
+
+  @Column({ name: 'is_locked', type: 'boolean', default: false })
+  isLocked: boolean;
+
+  @Expose()
+  @Column({ name: 'incorrect_login', type: 'int', nullable: true })
+  incorrectLoginAttempts: number | null;
+
+  @Column({ name: 'required_password_change', type: 'boolean', default: true })
+  firstPasswordChange: boolean;
 
   @Expose()
   @Column({ name: 'is_active', type: 'boolean', default: true })

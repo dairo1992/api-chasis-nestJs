@@ -18,22 +18,24 @@ export class RolePermissions {
   id: number;
 
   @Expose()
-  @ManyToOne(() => Role, (role) => role.uuid, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'role_uuid' })
-  role: Role;
-
   @Column({ type: 'char', length: 36, nullable: false })
   role_uuid: string;
+
+  @Expose()
+  @ManyToOne(() => Role, (role) => role.uuid, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'role_uuid', referencedColumnName: 'uuid' })
+  role: Role;
+
+  @Expose()
+  @Column({ type: 'char', length: 36, nullable: false })
+  permission_uuid: string;
 
   @Expose()
   @ManyToOne(() => Permission, (permission) => permission.uuid, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'permission_uuid' })
+  @JoinColumn({ name: 'permission_uuid', referencedColumnName: 'uuid' })
   permission: Permission;
-
-  @Column({ type: 'char', length: 36, nullable: false })
-  permission_uuid: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

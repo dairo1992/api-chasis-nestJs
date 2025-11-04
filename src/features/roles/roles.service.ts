@@ -4,9 +4,9 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Company } from '../companies/entities/company.entity';
-import { RolePermissions } from './entities/role-permissions.entity';
 import { Role } from './entities/role.entity';
 import { ServiceResponse } from 'src/common/interfaces/service-response.interface';
+import { CompanyPlanUsage } from '../companies/entities/company_plan_usage.entity';
 
 @Injectable()
 export class RolesService {
@@ -15,8 +15,8 @@ export class RolesService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
-    @InjectRepository(RolePermissions)
-    private readonly companyPlanUsageRepository: Repository<RolePermissions>,
+    @InjectRepository(CompanyPlanUsage)
+    private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
   ) { }
 
   async create(createRoleDto: CreateRoleDto): Promise<ServiceResponse<Role>> {
@@ -38,15 +38,27 @@ export class RolesService {
       const existCompany = await this.companyRepository.findOne({
         where: { uuid: createRoleDto.company_uuid },
       });
-      console.log(existCompany);
 
       if (!existCompany) {
         throw new InternalServerErrorException('Company not found');
       }
+
+      const newRole = this.roleRepository.create({
+        ...createRoleDto,
+        name: createRoleDto.name.toLocaleUpperCase(),
+      });
+      await this.roleRepository.save(newRole);
+      const plan = await this.companyPlanUsageRepository.findOne({
+        where: { company: { uuid: createRoleDto.company_uuid } },
+      });
+      if (plan) {
+        plan.current_roles_count += 1;
+        await this.companyPlanUsageRepository.save(plan);
+      }
       return {
         success: true,
         message: 'Role created successfully',
-        data: existRole!,
+        data: newRole,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);

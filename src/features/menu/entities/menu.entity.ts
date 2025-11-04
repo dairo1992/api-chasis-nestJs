@@ -20,7 +20,7 @@ export class Menus {
   uuid: string;
 
   @Expose()
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 100, unique: true })
   name: string;
 
   @Expose()

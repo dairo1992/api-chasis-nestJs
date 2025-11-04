@@ -35,12 +35,17 @@ export class Permission {
   description: string;
 
   @Expose()
-  @Column({ type: 'varchar', length: 50, unique: true })
+  @Column({ type: 'varchar', length: 50 })
   resource: string;
 
   @Expose()
   @Column({ type: 'varchar', length: 50, unique: true })
   action: string;
+
+  @Expose()
+  @OneToOne(() => Menus, { eager: true })
+  @JoinColumn({ name: 'menu_uuid' })
+  subscription_plan_id: number;
 
   @Expose()
   @Column({ name: 'is_active', type: 'boolean', default: true })
@@ -56,11 +61,6 @@ export class Permission {
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
   deletedAt: Date;
-
-  @Expose()
-  @OneToOne(() => Menus, { eager: true })
-  @JoinColumn({ name: 'menu_uuid' })
-  subscription_plan_id: number;
 
   @BeforeInsert()
   generateUuid() {

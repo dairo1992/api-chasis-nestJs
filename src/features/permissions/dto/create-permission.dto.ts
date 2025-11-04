@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreatePermissionDto {
   @IsNotEmpty()
@@ -7,18 +7,13 @@ export class CreatePermissionDto {
 
   @IsNotEmpty()
   @IsString()
-  code: string;
-
-  @IsNotEmpty()
-  @IsString()
   description: string;
 
   @IsNotEmpty()
   @IsString()
-  resource: string;
-
-  @IsNotEmpty()
-  @IsString()
+  @IsEnum(['READ', 'CREATE', 'UPDATE', 'DELETE'], {
+    message: 'Action must be one of READ, CREATE, UPDATE, DELETE',
+  })
   action: string;
 
   @IsNotEmpty({ message: 'Menu UUID is required' })

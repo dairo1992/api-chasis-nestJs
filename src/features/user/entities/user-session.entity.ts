@@ -15,20 +15,9 @@ export class UserSession {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
-  @Column({ name: 'user_id', type: 'bigint', unsigned: true })
-  userId: number;
-
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'user_uuid' })
   user: User;
-
-  @Column({
-    name: 'company_id',
-    type: 'bigint',
-    unsigned: true,
-    nullable: true,
-  })
-  companyId: number | null;
 
   @ManyToOne(() => Company, (company) => company.uuid)
   @JoinColumn({ name: 'company_uuid' })

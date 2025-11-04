@@ -6,9 +6,9 @@ import { Person } from './entities/person.entity';
 import { Company } from '../companies/entities/company.entity';
 import { CompanyPlanUsage } from '../companies/entities/company_plan_usage.entity';
 import { Repository } from 'typeorm';
-import { User } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '../roles/entities/role.entity';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class PersonsService {
@@ -21,8 +21,7 @@ export class PersonsService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(CompanyPlanUsage)
     private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly userService: UserService,
   ) { }
 
   async create(
@@ -51,48 +50,45 @@ export class PersonsService {
       if (!role) {
         throw new InternalServerErrorException('Role not found');
       }
+      console.log(company);
 
       const exist = await this.personRepository.findOne({
         where: {
-          document_number: createPersonDto.document_number,
-          company: company,
+          //document_number: createPersonDto.document_number,
+          company_uuid: company.uuid,
         },
       });
-
       if (exist) {
         throw new InternalServerErrorException('Person already exists');
       }
 
-      const newPerson = this.personRepository.create({
-        ...createPersonDto,
-        company: company,
-        role: role,
-      });
-      await this.personRepository.save(newPerson);
+      // const newPerson = this.personRepository.create({
+      //   ...createPersonDto,
+      //   company_uuid: company.uuid,
+      //   role: role,
+      // });
+      // await this.personRepository.save(newPerson);
 
-      if (createPersonDto.create_user) {
-        const existUser = await this.userRepository.findOne({
-          where: { person: newPerson },
-        });
-        if (existUser) {
-          throw new InternalServerErrorException('User already exists');
-        }
+      // if (createPersonDto.create_user) {
+      //   const existUser = await this.userService.findOne(newPerson.uuid);
+      //   if (existUser) {
+      //     throw new InternalServerErrorException('User already exists');
+      //   }
+      //   const userPartial: CreateUserDto = {
+      //     user: createPersonDto.email,
+      //     password: createPersonDto.document_number,
+      //     person_uuid: newPerson.uuid,
+      //   };
+      //   await this.userService.create(userPartial);
+      // }
 
-        const userPartial: Partial<User> = {
-          user: createPersonDto.email,
-          password: createPersonDto.document_number,
-          person: newPerson,
-        };
-        const newUser = this.userRepository.create(userPartial);
-        await this.userRepository.save(newUser);
-      }
+      // planUsage!.current_users_count += 1;
+      // await this.companyPlanUsageRepository.save(planUsage!);
 
-      planUsage!.current_users_count += 1;
-      await this.companyPlanUsageRepository.save(planUsage!);
       return {
         success: true,
         message: 'Person created successfully',
-        data: newPerson,
+        //data: newPerson,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);

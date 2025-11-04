@@ -9,6 +9,9 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '../roles/entities/role.entity';
 import { UserService } from '../user/user.service';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { PersonResponseDto } from './dto/response-person.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class PersonsService {
@@ -26,7 +29,7 @@ export class PersonsService {
 
   async create(
     createPersonDto: CreatePersonDto,
-  ): Promise<ServiceResponse<Person>> {
+  ): Promise<ServiceResponse<PersonResponseDto>> {
     try {
       const company = await this.companyRepository.findOne({
         where: { uuid: createPersonDto.company_uuid },
@@ -50,45 +53,50 @@ export class PersonsService {
       if (!role) {
         throw new InternalServerErrorException('Role not found');
       }
-      console.log(company);
 
       const exist = await this.personRepository.findOne({
         where: {
-          //document_number: createPersonDto.document_number,
-          company_uuid: company.uuid,
+          document_type: createPersonDto.document_type,
+          document_number: createPersonDto.document_number,
+          company: { uuid: createPersonDto.company_uuid },
         },
       });
+
       if (exist) {
         throw new InternalServerErrorException('Person already exists');
       }
 
-      // const newPerson = this.personRepository.create({
-      //   ...createPersonDto,
-      //   company_uuid: company.uuid,
-      //   role: role,
-      // });
-      // await this.personRepository.save(newPerson);
+      const newPerson = this.personRepository.create({
+        ...createPersonDto,
+        company: company,
+        role: role,
+      });
+      await this.personRepository.save(newPerson);
 
-      // if (createPersonDto.create_user) {
-      //   const existUser = await this.userService.findOne(newPerson.uuid);
-      //   if (existUser) {
-      //     throw new InternalServerErrorException('User already exists');
-      //   }
-      //   const userPartial: CreateUserDto = {
-      //     user: createPersonDto.email,
-      //     password: createPersonDto.document_number,
-      //     person_uuid: newPerson.uuid,
-      //   };
-      //   await this.userService.create(userPartial);
-      // }
+      if (createPersonDto.create_user) {
+        const existUser = await this.userService.findOne(newPerson.uuid);
+        if (existUser) {
+          throw new InternalServerErrorException('User already exists');
+        }
+        const userPartial: CreateUserDto = {
+          user: createPersonDto.email,
+          password: createPersonDto.document_number,
+          person_uuid: newPerson.uuid,
+        };
+        await this.userService.create(userPartial);
+      }
 
-      // planUsage!.current_users_count += 1;
-      // await this.companyPlanUsageRepository.save(planUsage!);
+      planUsage!.current_users_count += 1;
+      await this.companyPlanUsageRepository.save(planUsage!);
+
+      const personResponse = plainToInstance(PersonResponseDto, newPerson, {
+        excludeExtraneousValues: true,
+      });
 
       return {
         success: true,
         message: 'Person created successfully',
-        //data: newPerson,
+        data: personResponse,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);

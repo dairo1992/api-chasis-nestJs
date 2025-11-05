@@ -32,7 +32,7 @@ export class AuthService {
         throw new InternalServerErrorException('Person not found');
       }
 
-      const payload = { sub: person, username: user.user };
+      const payload = { sub: person.uuid, username: user.user };
       return {
         user: user.user,
         access_token: await this.jwtService.signAsync(payload),

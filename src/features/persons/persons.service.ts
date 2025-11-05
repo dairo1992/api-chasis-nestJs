@@ -136,11 +136,9 @@ export class PersonsService {
 
   async findByUserName(userName: string): Promise<Person | null> {
     try {
-      return await this.personRepository
-        .createQueryBuilder('person')
-        .innerJoinAndSelect('person.user', 'user')
-        .where('user.user = :userName', { userName })
-        .getOne();
+      return await this.personRepository.findOne({
+        where: { email: userName },
+      });
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
     }

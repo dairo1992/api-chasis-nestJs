@@ -11,7 +11,7 @@ import { PersonsModule } from '../persons/persons.module';
     PersonsModule,
     JwtModule.register({
       global: true,
-      secret: 'yourSecretKey', // TODO: move to config
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1h' },
     }),
   ],

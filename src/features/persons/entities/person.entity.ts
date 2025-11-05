@@ -11,10 +11,12 @@ import {
   BeforeInsert,
   Entity,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity({ name: 'persons' })
+@Unique(['document_type', 'document_number', 'company'])
 export class Person {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
@@ -24,11 +26,11 @@ export class Person {
   uuid: string;
 
   @Expose()
-  @Column({ type: 'varchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 100 })
   document_type: string;
 
   @Expose()
-  @Column({ type: 'varchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 100 })
   document_number: string;
 
   @Expose()
@@ -67,6 +69,7 @@ export class Person {
   @JoinColumn({ name: 'company_uuid', referencedColumnName: 'uuid' })
   company: Company;
 
+  @Expose()
   @ManyToOne(() => Role, (role) => role.uuid)
   @JoinColumn({ name: 'role_uuid', referencedColumnName: 'uuid' })
   role: Role;

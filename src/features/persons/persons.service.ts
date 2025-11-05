@@ -133,4 +133,16 @@ export class PersonsService {
   remove(id: string) {
     return `This action removes a #${id} person`;
   }
+
+  async findByUserName(userName: string): Promise<Person | null> {
+    try {
+      return await this.personRepository
+        .createQueryBuilder('person')
+        .innerJoinAndSelect('person.user', 'user')
+        .where('user.user = :userName', { userName })
+        .getOne();
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
+  }
 }

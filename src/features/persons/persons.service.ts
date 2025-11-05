@@ -25,7 +25,7 @@ export class PersonsService {
     @InjectRepository(CompanyPlanUsage)
     private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
     private readonly userService: UserService,
-  ) { }
+  ) {}
 
   async create(
     createPersonDto: CreatePersonDto,
@@ -134,11 +134,33 @@ export class PersonsService {
     return `This action removes a #${id} person`;
   }
 
-  async findByUserName(userName: string): Promise<Person | null> {
+  async findByUserName(userName: string): Promise<PersonResponseDto | null> {
     try {
-      return await this.personRepository.findOne({
-        where: { email: userName },
-      });
+      // return await this.personRepository.find().then((persons) => {
+      //   const personsResponse = persons.map((person) =>
+      //     plainToInstance(PersonResponseDto, person, {
+      //       excludeExtraneousValues: true,
+      //     }),
+      //   );
+      //   return {
+      //     success: true,
+      //     message: 'Persons found successfully',
+      //     data: personsResponse,
+      //   };
+      // });
+      return await this.personRepository
+        .findOne({
+          where: { email: userName },
+          relations: ['company', 'role'],
+        })
+        .then((person) => {
+          if (!person) {
+            return null;
+          }
+          return plainToInstance(PersonResponseDto, person, {
+            excludeExtraneousValues: true,
+          });
+        });
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
     }

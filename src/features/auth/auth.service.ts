@@ -31,8 +31,12 @@ export class AuthService {
       if (!person) {
         throw new InternalServerErrorException('Person not found');
       }
-
-      const payload = { sub: person.uuid, username: user.user };
+      const payload = {
+        sub: person.uuid,
+        username: user.user,
+        role: person.role.name,
+        company: person.company.name,
+      };
       return {
         user: user.user,
         access_token: await this.jwtService.signAsync(payload),

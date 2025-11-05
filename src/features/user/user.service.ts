@@ -24,10 +24,11 @@ export class UserService {
       }
       const salt = await bcrypt.genSalt(this.saltRounds);
       const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+      const { person_uuid, ...rest } = createUserDto;
       const newUser = this.userRepository.create({
-        ...createUserDto,
+        ...rest,
         password: hashedPassword,
-        person: createUserDto.person_uuid,
+        person: { uuid: person_uuid },
       });
       return await this.userRepository.save(newUser);
     } catch (error) {

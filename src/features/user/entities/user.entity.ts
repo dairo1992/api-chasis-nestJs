@@ -38,7 +38,7 @@ export class User {
   @Expose()
   @OneToOne(() => Person, (person) => person.uuid, { eager: true })
   @JoinColumn({ name: 'person_uuid', referencedColumnName: 'uuid' })
-  person: string;
+  person: Person;
 
   @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified: boolean;

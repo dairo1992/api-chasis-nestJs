@@ -103,8 +103,23 @@ export class PersonsService {
     }
   }
 
-  findAll() {
-    return `This action returns all persons`;
+  async findAll(): Promise<ServiceResponse<PersonResponseDto[]>> {
+    try {
+      return await this.personRepository.find().then((persons) => {
+        const personsResponse = persons.map((person) =>
+          plainToInstance(PersonResponseDto, person, {
+            excludeExtraneousValues: true,
+          }),
+        );
+        return {
+          success: true,
+          message: 'Persons found successfully',
+          data: personsResponse,
+        };
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
   }
 
   findOne(id: string) {

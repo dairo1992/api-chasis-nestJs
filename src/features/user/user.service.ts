@@ -5,6 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { UserSession } from './entities/user-session.entity';
+import { UserToken } from './entities/user-token.entity';
+import { CreateUserTokenDto } from './dto/create-user-token.dto';
 
 @Injectable()
 export class UserService {
@@ -12,6 +15,10 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(User)
+    private readonly userTokenRepository: Repository<UserToken>,
+    @InjectRepository(User)
+    private readonly userSessionRepository: Repository<UserSession>,
   ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -68,6 +75,17 @@ export class UserService {
           .andWhere('user.is_active = :isActive', { isActive: true })
           .getRawOne();
       return user ?? null;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
+  }
+
+  async createUserToken(
+    createUserToken: CreateUserTokenDto,
+  ): Promise<UserToken> {
+    try {
+      const newUserToken = this.userTokenRepository.create(createUserToken)
+      return await this.userTokenRepository.save(newUserToken);
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
     }

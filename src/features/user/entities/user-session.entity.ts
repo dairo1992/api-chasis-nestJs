@@ -30,9 +30,6 @@ export class UserSession {
   @Column({ name: 'device_info', type: 'json', nullable: true })
   deviceInfo: string | null;
 
-  @Column({ name: 'location_info', type: 'json', nullable: true })
-  locationInfo: string | null;
-
   @Column({ name: 'expires_at', type: 'timestamp' })
   expiresAt: Date;
 

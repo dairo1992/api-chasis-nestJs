@@ -34,13 +34,18 @@ export class AuthService {
       const payload = {
         sub: person.uuid,
         username: user.user,
+      };
+      const response = {
+        user: user.user,
         role: person.role.name,
         company: person.company.name,
-      };
-      return {
-        user: user.user,
         access_token: await this.jwtService.signAsync(payload),
+        refresh_token: await this.jwtService.signAsync(payload, {
+          expiresIn: '7d',
+        }),
       };
+
+      return response;
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
     }

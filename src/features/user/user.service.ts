@@ -23,12 +23,7 @@ export class UserService {
         throw new InternalServerErrorException('User already exists');
       }
       const salt = await bcrypt.genSalt(this.saltRounds);
-      console.log(salt);
-      
-      const hashedPassword = await bcrypt.hash(
-        createUserDto.password,
-        this.saltRounds,
-      );
+      const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
       const newUser = this.userRepository.create({
         ...createUserDto,
         password: hashedPassword,

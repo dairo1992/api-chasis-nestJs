@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserSession } from './entities/user-session.entity';
 import { UserToken } from './entities/user-token.entity';
 import { CreateUserTokenDto } from './dto/create-user-token.dto';
 
@@ -15,10 +14,8 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(User)
+    @InjectRepository(UserToken)
     private readonly userTokenRepository: Repository<UserToken>,
-    @InjectRepository(User)
-    private readonly userSessionRepository: Repository<UserSession>,
   ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -31,11 +28,10 @@ export class UserService {
       }
       const salt = await bcrypt.genSalt(this.saltRounds);
       const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-      const { person_uuid, ...rest } = createUserDto;
       const newUser = this.userRepository.create({
-        ...rest,
+        ...createUserDto,
         password: hashedPassword,
-        person: { uuid: person_uuid },
+        person: { uuid: createUserDto.person_uuid },
       });
       return await this.userRepository.save(newUser);
     } catch (error) {
@@ -51,6 +47,7 @@ export class UserService {
     try {
       return this.userRepository.findOne({
         where: { uuid },
+        relations: ['person', 'person.company', 'person.role'],
       });
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
@@ -65,15 +62,12 @@ export class UserService {
     return `This action removes a #${id} user`;
   }
 
-  async findOneByUserName(userName: string): Promise<{ user: string; password: string } | null> {
+  async findOneByUserName(userName: string): Promise<User | null> {
     try {
-      const user: { user: string; password: string } | undefined =
-        await this.userRepository
-          .createQueryBuilder('user')
-          .select(['user.user AS user', 'user.password AS password'])
-          .where('user.user = :user', { user: userName })
-          .andWhere('user.is_active = :isActive', { isActive: true })
-          .getRawOne();
+      const user = await this.userRepository.findOne({
+        where: { user: userName, isActive: true },
+        relations: ['person', 'person.company', 'person.role'],
+      });
       return user ?? null;
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
@@ -81,10 +75,17 @@ export class UserService {
   }
 
   async createUserToken(
-    createUserToken: CreateUserTokenDto,
+    createUserTokenDto: CreateUserTokenDto,
   ): Promise<UserToken> {
     try {
-      const newUserToken = this.userTokenRepository.create(createUserToken)
+      const salt = await bcrypt.genSalt(this.saltRounds);
+      const tokenHash = await bcrypt.hash(createUserTokenDto.token, salt);
+      const newUserToken = this.userTokenRepository.create({
+        user: createUserTokenDto.user,
+        tokenType: createUserTokenDto.tokenType,
+        tokenHash: tokenHash,
+        expiresAt: createUserTokenDto.expiresAt,
+      });
       return await this.userTokenRepository.save(newUserToken);
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);

@@ -5,6 +5,8 @@ import { LoginResponseDto } from './dto/login-response.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { PersonsService } from '../persons/persons.service';
+import { CreateUserTokenDto } from '../user/dto/create-user-token.dto';
+import { TokenType } from '../user/entities/user-token.entity';
 
 @Injectable()
 export class AuthService {
@@ -35,14 +37,29 @@ export class AuthService {
         sub: person.uuid,
         username: user.user,
       };
+      const accessToken = await this.jwtService.signAsync(payload);
+      const refreshToken = await this.jwtService.signAsync(payload, {
+        expiresIn: '7d',
+      });
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      const createUserTokenDto: CreateUserTokenDto = {
+        user: user,
+        tokenType: TokenType.REFRESH,
+        token: refreshToken,
+        expiresAt: expiresAt,
+      };
+
+      await this.userService.createUserToken(createUserTokenDto);
+
       const response = {
         user: user.user,
         role: person.role.name,
         company: person.company.name,
-        access_token: await this.jwtService.signAsync(payload),
-        refresh_token: await this.jwtService.signAsync(payload, {
-          expiresIn: '7d',
-        }),
+        access_token: accessToken,
+        refresh_token: refreshToken,
       };
 
       return response;

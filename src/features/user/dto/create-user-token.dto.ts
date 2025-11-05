@@ -1,25 +1,9 @@
-import { IsDate, IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { User } from '../entities/user.entity';
+import { TokenType } from '../entities/user-token.entity';
 
 export class CreateUserTokenDto {
-  @IsNotEmpty()
-  @IsString()
-  user: string;
-
-  @IsNotEmpty()
-  @IsEnum([
-    'access',
-    'refresh',
-    'api_key',
-    'password_reset',
-    'email_verification',
-  ])
-  tokenType: string;
-
-  @IsNotEmpty()
-  @IsUUID()
-  tokenHash: string;
-
-  @IsNotEmpty()
-  @IsDate()
-  expiresAt: Date | null;
+  user: User;
+  tokenType: TokenType;
+  token: string;
+  expiresAt: Date;
 }

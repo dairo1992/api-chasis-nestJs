@@ -13,6 +13,7 @@ import { UserSession } from '../user/entities/user-session.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { JWTPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -102,7 +103,7 @@ export class AuthService {
       });
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const decoded = this.jwtService.decode(oldRefreshToken);
+      const decoded = this.jwtService.decode<JWTPayload>(oldRefreshToken);
       if (!decoded) {
         throw new InternalServerErrorException('Invalid refresh token');
       }
@@ -132,7 +133,7 @@ export class AuthService {
         throw new InternalServerErrorException('Session not found');
       }
 
-      const payload = {
+      const payload: JWTPayload = {
         sub: person.uuid,
         session_id: decoded.session_id,
         username: user.user,

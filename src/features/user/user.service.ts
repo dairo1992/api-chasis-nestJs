@@ -5,8 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserToken } from './entities/user-token.entity';
-import { CreateUserTokenDto } from './dto/create-user-token.dto';
 
 @Injectable()
 export class UserService {
@@ -14,8 +12,6 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(UserToken)
-    private readonly userTokenRepository: Repository<UserToken>,
   ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -74,21 +70,5 @@ export class UserService {
     }
   }
 
-  async createUserToken(
-    createUserTokenDto: CreateUserTokenDto,
-  ): Promise<UserToken> {
-    try {
-      const salt = await bcrypt.genSalt(this.saltRounds);
-      const tokenHash = await bcrypt.hash(createUserTokenDto.token, salt);
-      const newUserToken = this.userTokenRepository.create({
-        user: createUserTokenDto.user,
-        tokenType: createUserTokenDto.tokenType,
-        tokenHash: tokenHash,
-        expiresAt: createUserTokenDto.expiresAt,
-      });
-      return await this.userTokenRepository.save(newUserToken);
-    } catch (error) {
-      throw new InternalServerErrorException(error.message ?? error);
-    }
-  }
+
 }

@@ -37,12 +37,12 @@ export class AuditLog {
   resourceType: string;
 
   @Column({
-    type: 'bigint',
-    unsigned: true,
+    type: 'varchar',
+    length: 100,
     nullable: true,
-    name: 'resource_id',
+    name: 'endpoint',
   })
-  resourceId: number;
+  endpoint: string;
 
   @Column({ type: 'json', nullable: true, name: 'old_values' })
   oldValues: any;

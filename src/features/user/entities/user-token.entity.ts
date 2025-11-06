@@ -23,7 +23,7 @@ export class UserToken {
   id: number;
 
   @ManyToOne(() => User, (user) => user.uuid)
-  @JoinColumn({ name: 'user_uuid' })
+  @JoinColumn({ name: 'user_uuid', referencedColumnName: 'uuid' })
   user: User;
 
   @Column({

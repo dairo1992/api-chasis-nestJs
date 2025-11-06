@@ -113,7 +113,7 @@ export class CompaniesService {
         throw new InternalServerErrorException('Subscription plan not found');
       }
 
-      this.companyRepository.update(existCompany.id, updateCompanyDto);
+      await this.companyRepository.update(existCompany.id, updateCompanyDto);
       return { success: true, message: 'Company updated successfully' };
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);

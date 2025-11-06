@@ -6,24 +6,37 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { PersonsService } from '../persons/persons.service';
 import { CreateUserTokenDto } from '../user/dto/create-user-token.dto';
-import { TokenType } from '../user/entities/user-token.entity';
+import { TokenType, UserToken } from '../user/entities/user-token.entity';
+import { CreateUserSessionDto } from '../user/dto/create-user-session.dto';
+import { Request } from 'express';
+import { UserSession } from '../user/entities/user-session.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
+  private readonly saltRounds = 15;
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly personService: PersonsService,
+    @InjectRepository(UserToken)
+    private readonly userTokenRepository: Repository<UserToken>,
+    @InjectRepository(UserSession)
+    private readonly userSessionRepository: Repository<UserSession>,
   ) { }
 
-  async login(loginDto: LoginRequestDto): Promise<LoginResponseDto> {
+  async login(
+    loginDto: LoginRequestDto,
+    request: Request,
+  ): Promise<LoginResponseDto> {
     try {
       const user = await this.userService.findOneByUserName(loginDto.username);
       if (!user) {
         throw new InternalServerErrorException('User not found');
       }
       const isMatch = await bcrypt.compare(loginDto.password, user.password);
-      console.log(`validacion: ${isMatch}`);
 
       if (!isMatch) {
         throw new InternalServerErrorException('Invalid password');
@@ -33,8 +46,10 @@ export class AuthService {
       if (!person) {
         throw new InternalServerErrorException('Person not found');
       }
+
       const payload = {
         sub: person.uuid,
+        session_id: uuidv4(),
         username: user.user,
       };
       const accessToken = await this.jwtService.signAsync(payload);
@@ -52,7 +67,19 @@ export class AuthService {
         expiresAt: expiresAt,
       };
 
-      await this.userService.createUserToken(createUserTokenDto);
+      await this.createUserToken(createUserTokenDto);
+
+      const userSessionDto: CreateUserSessionDto = {
+        user: user,
+        session_id: payload.session_id,
+        sessionToken: accessToken,
+        ipAddress: (request.headers['x-ip-address'] as string) ?? request.ip,
+        userAgent:
+          (request.headers['x-user-agent'] as string) ??
+          request.headers['user-agent'],
+        expiresAt: expiresAt,
+      };
+      await this.createUserSession(userSessionDto);
 
       const response = {
         user: user.user,
@@ -66,5 +93,145 @@ export class AuthService {
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
     }
+  }
+
+  async refreshToken(oldRefreshToken: string): Promise<LoginResponseDto> {
+    try {
+      this.jwtService.verifyAsync(oldRefreshToken).catch(() => {
+        throw new InternalServerErrorException('Invalid refresh token');
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const decoded = this.jwtService.decode(oldRefreshToken);
+      if (!decoded) {
+        throw new InternalServerErrorException('Invalid refresh token');
+      }
+
+      const user = await this.userService.findOneByUserName(decoded.username);
+      if (!user) {
+        throw new InternalServerErrorException('User not found');
+      }
+
+      const person = await this.personService.findByUserName(user.user);
+      if (!person) {
+        throw new InternalServerErrorException('Person not found');
+      }
+
+      const existingToken = await this.validateRefreshToken(
+        user.uuid,
+        oldRefreshToken,
+      );
+      if (!existingToken) {
+        throw new InternalServerErrorException('Invalid refresh token');
+      }
+
+      const existSession = await this.userSessionRepository.findOne({
+        where: { session_id: decoded.session_id },
+      });
+      if (!existSession) {
+        throw new InternalServerErrorException('Session not found');
+      }
+
+      const payload = {
+        sub: person.uuid,
+        session_id: decoded.session_id,
+        username: user.user,
+      };
+      const newAccessToken = await this.jwtService.signAsync(payload);
+      const newRefreshToken = await this.jwtService.signAsync(payload, {
+        expiresIn: '7d',
+      });
+
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      const createUserTokenDto: CreateUserTokenDto = {
+        user: user,
+        tokenType: TokenType.REFRESH,
+        token: newRefreshToken,
+        expiresAt: expiresAt,
+      };
+
+      await this.createUserToken(createUserTokenDto);
+      await this.userSessionRepository.update(existSession.id, {
+        sessionToken: newAccessToken,
+        expiresAt: expiresAt,
+      });
+      const response = {
+        user: user.user,
+        role: person.role.name,
+        company: person.company.name,
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken,
+      };
+
+      return response;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
+  }
+
+  async createUserToken(
+    createUserTokenDto: CreateUserTokenDto,
+  ): Promise<UserToken> {
+    try {
+      const salt = await bcrypt.genSalt(this.saltRounds);
+      const tokenHash = await bcrypt.hash(createUserTokenDto.token, salt);
+      const newUserToken = this.userTokenRepository.create({
+        user: createUserTokenDto.user,
+        tokenType: createUserTokenDto.tokenType,
+        tokenHash: tokenHash,
+        expiresAt: createUserTokenDto.expiresAt,
+      });
+      return await this.userTokenRepository.save(newUserToken);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
+  }
+
+  async createUserSession(
+    createUserSessionDto: CreateUserSessionDto,
+  ): Promise<UserSession> {
+    try {
+      const newUserSession = this.userSessionRepository.create({
+        user: createUserSessionDto.user,
+        session_id: createUserSessionDto.session_id,
+        sessionToken: createUserSessionDto.sessionToken,
+        ipAddress: createUserSessionDto.ipAddress,
+        userAgent: createUserSessionDto.userAgent,
+        expiresAt: createUserSessionDto.expiresAt,
+      });
+      return await this.userSessionRepository.save(newUserSession);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
+  }
+
+  async validateRefreshToken(
+    user_uuid: string,
+    oldToken: string,
+  ): Promise<boolean> {
+    const exits = await this.userTokenRepository.findOne({
+      where: {
+        tokenType: TokenType.REFRESH,
+        isActive: true,
+        user: { uuid: user_uuid },
+      },
+    });
+    if (exits) {
+      const isMatch = await bcrypt.compare(oldToken, exits.tokenHash);
+      if (isMatch) {
+        if (exits.expiresAt! < new Date()) {
+          exits.isActive = false;
+          await this.userTokenRepository.save(exits);
+          return false;
+        }
+        exits.isActive = false;
+        exits.lastUsedAt = new Date();
+        await this.userTokenRepository.save(exits);
+        return true;
+      }
+    }
+    return false;
   }
 }

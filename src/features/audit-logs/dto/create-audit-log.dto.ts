@@ -3,7 +3,7 @@ export class CreateAuditLogDto {
   companyId?: number;
   action: string;
   resourceType?: string;
-  resourceId?: number;
+  endpoint?: string;
   oldValues?: any;
   newValues?: any;
   ipAddress?: string;

@@ -10,14 +10,16 @@ import { AuditLogsService } from '../../features/audit-logs/audit-logs.service';
 
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
-  constructor(private readonly auditLogsService: AuditLogsService) {}
+  constructor(private readonly auditLogsService: AuditLogsService) { }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     const { method, url, body, user, params } = request;
 
     const resourceType = url.split('/')[3]?.split('?')[0];
-    const resourceId = params.id;
+    const endpoint = url.split('/')[4] ?? '';
+    console.log(`url: ${url.split('/')}`);
+    console.log(`endpoint: ${endpoint}`);
 
     let action = 'READ';
     if (method === 'POST') action = 'CREATE';
@@ -31,14 +33,14 @@ export class AuditInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(() => {
-        this.auditLogsService.create({
+        void this.auditLogsService.create({
           userId: user?.id,
           companyId: user?.companyId,
           action,
           resourceType,
-          resourceId,
+          endpoint: endpoint,
           newValues: body,
-          ipAddress: request.ip,
+          ipAddress: request.headers['x-ip-address'],
           userAgent: request.headers['user-agent'],
         });
       }),

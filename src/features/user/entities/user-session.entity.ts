@@ -14,11 +14,14 @@ export class UserSession {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
+  @Column({ type: 'char', length: 36, unique: true })
+  session_id: string;
+
   @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'user_uuid' })
+  @JoinColumn({ name: 'user_uuid', referencedColumnName: 'uuid' })
   user: User;
 
-  @Column({ name: 'session_token', type: 'varchar', length: 255, unique: true })
+  @Column({ name: 'session_token', type: 'varchar', length: 500, unique: true })
   sessionToken: string;
 
   @Column({ name: 'ip_address', type: 'varchar', length: 45, nullable: true })
@@ -26,9 +29,6 @@ export class UserSession {
 
   @Column({ name: 'user_agent', type: 'text', nullable: true })
   userAgent: string | null;
-
-  @Column({ name: 'device_info', type: 'json', nullable: true })
-  deviceInfo: string | null;
 
   @Column({ name: 'expires_at', type: 'timestamp' })
   expiresAt: Date;

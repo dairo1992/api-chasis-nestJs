@@ -7,6 +7,9 @@ import { Company } from '../companies/entities/company.entity';
 import { Role } from './entities/role.entity';
 import { ServiceResponse } from 'src/common/interfaces/service-response.interface';
 import { CompanyPlanUsage } from '../companies/entities/company_plan_usage.entity';
+import { CreateRolePermissionDto } from './dto/create-role-permission.dto';
+import { PermissionsService } from '../permissions/permissions.service';
+import { RolePermissions } from './entities/role-permissions.entity';
 
 @Injectable()
 export class RolesService {
@@ -17,6 +20,9 @@ export class RolesService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(CompanyPlanUsage)
     private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
+    @InjectRepository(RolePermissions)
+    private readonly rolePermissionsRepository: Repository<RolePermissions>,
+    private readonly permissionService: PermissionsService,
   ) { }
 
   async create(createRoleDto: CreateRoleDto): Promise<ServiceResponse<Role>> {
@@ -65,7 +71,9 @@ export class RolesService {
     }
   }
 
-  async findAllByCompany(company_uuid: string): Promise<ServiceResponse<Role[]>> {
+  async findAllByCompany(
+    company_uuid: string,
+  ): Promise<ServiceResponse<Role[]>> {
     try {
       const roles = await this.roleRepository.find({
         where: { company_uuid },
@@ -90,5 +98,39 @@ export class RolesService {
 
   remove(id: number) {
     return `This action removes a #${id} role`;
+  }
+
+  async createRolePermissions(
+    createRolePermissionsDto: CreateRolePermissionDto,
+  ): Promise<ServiceResponse<void>> {
+    try {
+      const existRole = await this.roleRepository.findOne({
+        where: { uuid: createRolePermissionsDto.role_uuid },
+      });
+      if (!existRole) {
+        throw new InternalServerErrorException('Role not found');
+      }
+
+      const existPermissions = await this.permissionService.findOne(
+        createRolePermissionsDto.permissions_uuid,
+      );
+      if (!existPermissions) {
+        throw new InternalServerErrorException('Permission not found');
+      }
+
+      const newPermissions = this.rolePermissionsRepository.create({
+        permission: { uuid: createRolePermissionsDto.permissions_uuid },
+        role: {
+          uuid: createRolePermissionsDto.role_uuid,
+        },
+      });
+      await this.rolePermissionsRepository.save(newPermissions);
+      return {
+        success: true,
+        message: 'Role permissions created successfully',
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
   }
 }

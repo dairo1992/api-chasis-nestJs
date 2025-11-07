@@ -10,14 +10,23 @@ import {
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { CreateRolePermissionDto } from './dto/create-role-permission.dto';
 
 @Controller('roles')
 export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(private readonly rolesService: RolesService) { }
 
   @Post()
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.rolesService.create(createRoleDto);
+  }
+
+  @Post('asign-permissions')
+  createRolePermissions(
+    @Body()
+    createRolePermissionsDto: CreateRolePermissionDto,
+  ) {
+    return this.rolesService.createRolePermissions(createRolePermissionsDto);
   }
 
   @Get(':company_uuid')

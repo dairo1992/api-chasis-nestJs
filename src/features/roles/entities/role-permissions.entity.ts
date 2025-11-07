@@ -2,7 +2,6 @@ import { Expose } from 'class-transformer';
 import { Permission } from 'src/features/permissions/entities/permission.entity';
 import { Role } from 'src/features/roles/entities/role.entity';
 import {
-  Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
@@ -18,17 +17,9 @@ export class RolePermissions {
   id: number;
 
   @Expose()
-  @Column({ type: 'char', length: 36, nullable: false })
-  role_uuid: string;
-
-  @Expose()
   @ManyToOne(() => Role, (role) => role.uuid, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_uuid', referencedColumnName: 'uuid' })
   role: Role;
-
-  @Expose()
-  @Column({ type: 'char', length: 36, nullable: false })
-  permission_uuid: string;
 
   @Expose()
   @ManyToOne(() => Permission, (permission) => permission.uuid, {

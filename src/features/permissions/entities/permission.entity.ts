@@ -44,8 +44,8 @@ export class Permission {
 
   @Expose()
   @OneToOne(() => Menus, { eager: true })
-  @JoinColumn({ name: 'menu_uuid' })
-  subscription_plan_id: number;
+  @JoinColumn({ name: 'menu_uuid', referencedColumnName: 'uuid' })
+  menu_uuid: string;
 
   @Expose()
   @Column({ name: 'is_active', type: 'boolean', default: true })

@@ -18,8 +18,6 @@ export class AuditInterceptor implements NestInterceptor {
 
     const resourceType = url.split('/')[3]?.split('?')[0];
     const endpoint = url.split('/')[4] ?? '';
-    console.log(`url: ${url.split('/')}`);
-    console.log(`endpoint: ${endpoint}`);
 
     let action = 'READ';
     if (method === 'POST') action = 'CREATE';

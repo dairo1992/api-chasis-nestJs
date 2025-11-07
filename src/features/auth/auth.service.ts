@@ -14,6 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { JWTPayload } from 'src/common/interfaces/jwt-payload.interface';
+import { RefreshTokenRequestDto } from './dto/refresh-token-request.dto';
 
 @Injectable()
 export class AuthService {
@@ -48,7 +49,7 @@ export class AuthService {
         throw new InternalServerErrorException('Person not found');
       }
 
-      const payload = {
+      const payload: JWTPayload = {
         sub: person.uuid,
         session_id: uuidv4(),
         username: user.user,
@@ -88,6 +89,7 @@ export class AuthService {
         company: person.company.name,
         access_token: accessToken,
         refresh_token: refreshToken,
+        session_id: payload.session_id,
       };
 
       return response;
@@ -96,14 +98,17 @@ export class AuthService {
     }
   }
 
-  async refreshToken(oldRefreshToken: string): Promise<LoginResponseDto> {
+  async refreshToken(
+    refreshDto: RefreshTokenRequestDto,
+  ): Promise<LoginResponseDto> {
     try {
-      this.jwtService.verifyAsync(oldRefreshToken).catch(() => {
+      await this.jwtService.verifyAsync(refreshDto.refresh_token).catch(() => {
         throw new InternalServerErrorException('Invalid refresh token');
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const decoded = this.jwtService.decode<JWTPayload>(oldRefreshToken);
+      const decoded = this.jwtService.decode<JWTPayload>(
+        refreshDto.refresh_token,
+      );
       if (!decoded) {
         throw new InternalServerErrorException('Invalid refresh token');
       }
@@ -120,7 +125,7 @@ export class AuthService {
 
       const existingToken = await this.validateRefreshToken(
         user.uuid,
-        oldRefreshToken,
+        refreshDto.refresh_token,
       );
       if (!existingToken) {
         throw new InternalServerErrorException('Invalid refresh token');
@@ -167,6 +172,14 @@ export class AuthService {
       };
 
       return response;
+      // const response = {
+      //   user: '',
+      //   role: '',
+      //   company: '',
+      //   access_token: '',
+      //   refresh_token: '',
+      // };
+      // return response;
     } catch (error) {
       throw new InternalServerErrorException(error.message ?? error);
     }
@@ -234,5 +247,35 @@ export class AuthService {
       }
     }
     return false;
+  }
+
+  async logout(session_id: string): Promise<void> {
+    try {
+      const session = await this.userSessionRepository.findOne({
+        where: { session_id },
+        relations: ['user'],
+      });
+      if (!session) {
+        throw new InternalServerErrorException('Session not found');
+      }
+      if (!session.isActive) {
+        throw new InternalServerErrorException('Session already logged out');
+      }
+
+      await this.userTokenRepository.update(
+        { user: session.user, isActive: true },
+        {
+          isActive: false,
+          lastUsedAt: new Date(),
+        },
+      );
+
+      await this.userSessionRepository.update(session.id, {
+        isActive: false,
+        expiresAt: new Date(),
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error.message ?? error);
+    }
   }
 }

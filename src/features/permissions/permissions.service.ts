@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { Permission } from './entities/permission.entity';
@@ -14,7 +18,7 @@ export class PermissionsService {
     private readonly permissionRepository: Repository<Permission>,
     @InjectRepository(Menus)
     private readonly menuRepository: Repository<Menus>,
-  ) { }
+  ) {}
 
   async create(
     createPermissionDto: CreatePermissionDto,
@@ -39,6 +43,7 @@ export class PermissionsService {
       const newPermission = this.permissionRepository.create({
         ...createPermissionDto,
         code: code,
+        menu_uuid: menu.uuid,
         resource: menu.code,
       });
       await this.permissionRepository.save(newPermission);

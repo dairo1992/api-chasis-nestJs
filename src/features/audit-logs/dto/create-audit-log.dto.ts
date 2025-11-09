@@ -1,3 +1,5 @@
+import { AuditLogStatus } from '../entities/audit-log.entity';
+
 export class CreateAuditLogDto {
   userId?: number;
   companyId?: number;
@@ -8,4 +10,7 @@ export class CreateAuditLogDto {
   newValues?: any;
   ipAddress?: string;
   userAgent?: string;
+  status: AuditLogStatus;
+  responseData?: any;
+  errorMessage?: string;
 }

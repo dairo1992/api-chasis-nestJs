@@ -65,7 +65,7 @@ export class Person {
   @Column({ type: 'varchar', length: 100, nullable: true })
   city: string;
 
-  @ManyToOne(() => Company, (company) => company.uuid)
+  @ManyToOne(() => Company, (company) => company.uuid, { eager: true })
   @JoinColumn({ name: 'company_uuid', referencedColumnName: 'uuid' })
   company: Company;
 

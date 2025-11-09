@@ -9,6 +9,11 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { Company } from '../../companies/entities/company.entity';
 
+export enum AuditLogStatus {
+  SUCCESS = 'SUCCESS',
+  FAILED = 'FAILED',
+}
+
 @Entity('audit_logs')
 export class AuditLog {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
@@ -55,6 +60,15 @@ export class AuditLog {
 
   @Column({ type: 'text', nullable: true, name: 'user_agent' })
   userAgent: string;
+
+  @Column({ type: 'enum', enum: AuditLogStatus, nullable: true })
+  status: AuditLogStatus;
+
+  @Column({ type: 'json', nullable: true, name: 'response_data' })
+  responseData: any;
+
+  @Column({ type: 'text', nullable: true, name: 'error_message' })
+  errorMessage: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

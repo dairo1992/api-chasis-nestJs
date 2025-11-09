@@ -9,7 +9,7 @@ import {
   BeforeInsert,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -39,11 +39,11 @@ export class Permission {
   resource: string;
 
   @Expose()
-  @Column({ type: 'varchar', length: 50, unique: true })
+  @Column({ type: 'varchar', length: 50 })
   action: string;
 
   @Expose()
-  @OneToOne(() => Menus, { eager: true })
+  @ManyToOne(() => Menus, { eager: true })
   @JoinColumn({ name: 'menu_uuid', referencedColumnName: 'uuid' })
   menu_uuid: string;
 

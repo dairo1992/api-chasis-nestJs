@@ -35,6 +35,7 @@ export class PermissionsService {
         where: {
           name: createPermissionDto.name.toLocaleUpperCase(),
           code: code,
+          isActive: true,
         },
       });
       if (existPermission) {

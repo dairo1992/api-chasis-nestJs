@@ -9,6 +9,6 @@ import { MenuModule } from '../menu/menu.module';
   imports: [TypeOrmModule.forFeature([Permission]), MenuModule],
   controllers: [PermissionsController],
   providers: [PermissionsService],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, PermissionsService],
 })
 export class PermissionsModule {}

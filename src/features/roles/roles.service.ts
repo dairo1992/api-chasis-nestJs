@@ -23,7 +23,7 @@ export class RolesService {
     @InjectRepository(RolePermissions)
     private readonly rolePermissionsRepository: Repository<RolePermissions>,
     private readonly permissionService: PermissionsService,
-  ) { }
+  ) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<ServiceResponse<Role>> {
     try {
@@ -105,7 +105,7 @@ export class RolesService {
   ): Promise<ServiceResponse<void>> {
     try {
       const existRole = await this.roleRepository.findOne({
-        where: { uuid: createRolePermissionsDto.role_uuid },
+        where: { uuid: createRolePermissionsDto.role_uuid, isActive: true },
       });
       if (!existRole) {
         throw new InternalServerErrorException('Role not found');
@@ -116,6 +116,19 @@ export class RolesService {
       );
       if (!existPermissions) {
         throw new InternalServerErrorException('Permission not found');
+      }
+
+      const existRolePermission = await this.rolePermissionsRepository.findOne({
+        where: {
+          role: { uuid: createRolePermissionsDto.role_uuid },
+          permission: { uuid: createRolePermissionsDto.permissions_uuid },
+        },
+      });
+
+      if (existRolePermission) {
+        throw new InternalServerErrorException(
+          'Role permission already exists',
+        );
       }
 
       const newPermissions = this.rolePermissionsRepository.create({

@@ -10,10 +10,11 @@ import { PermissionsModule } from './features/permissions/permissions.module';
 import { RolesModule } from './features/roles/roles.module';
 import { UserModule } from './features/user/user.module';
 import { AuditLogsModule } from './features/audit-logs/audit-logs.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { PersonsModule } from './features/persons/persons.module';
 import { AuthModule } from './features/auth/auth.module';
+import { AuthGuard } from './features/auth/guards/auth.guard';
 
 @Module({
   imports: [
@@ -43,6 +44,10 @@ import { AuthModule } from './features/auth/auth.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
     },
   ],
 })

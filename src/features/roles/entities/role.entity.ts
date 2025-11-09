@@ -9,9 +9,12 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Company } from '../../companies/entities/company.entity';
+import { Permission } from 'src/features/permissions/entities/permission.entity';
 
 @Entity()
 export class Role {
@@ -56,10 +59,14 @@ export class Role {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
   deletedAt: Date;
 
-  // @Expose()
-  // @OneToOne(() => Menus, { eager: true })
-  // @JoinColumn({ name: 'menu_uuid' })
-  // subscription_plan_id: number;
+  @Expose()
+  @ManyToMany(() => Permission, { eager: true })
+  @JoinTable({
+    name: 'role_permissions',
+    joinColumn: { name: 'role_uuid', referencedColumnName: 'uuid' },
+    inverseJoinColumn: { name: 'permission_uuid', referencedColumnName: 'uuid' },
+  })
+  permissions: Permission[];
 
   @BeforeInsert()
   generateUuid() {

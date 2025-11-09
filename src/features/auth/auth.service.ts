@@ -83,13 +83,14 @@ export class AuthService {
       };
       await this.createUserSession(userSessionDto);
 
-      const response = {
+      const response: LoginResponseDto = {
         user: user.user,
         role: person.role.name,
         company: person.company.name,
         access_token: accessToken,
         refresh_token: refreshToken,
         session_id: payload.session_id,
+        permissions: person.role.permissions,
       };
 
       return response;
@@ -163,12 +164,13 @@ export class AuthService {
         sessionToken: newAccessToken,
         expiresAt: expiresAt,
       });
-      const response = {
+      const response: LoginResponseDto = {
         user: user.user,
         role: person.role.name,
         company: person.company.name,
         access_token: newAccessToken,
         refresh_token: newRefreshToken,
+        permissions: person.role.permissions,
       };
 
       return response;

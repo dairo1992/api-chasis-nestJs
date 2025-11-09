@@ -8,12 +8,33 @@ class CompanyBasicDto {
   name: string;
 }
 
+class PermissionBasicDto {
+  @Expose()
+  uuid: string;
+
+  @Expose()
+  name: string;
+
+  @Expose()
+  code: string;
+
+  @Expose()
+  resource: string;
+
+  @Expose()
+  action: string;
+}
+
 class RoleBasicDto {
   @Expose()
   uuid: string;
 
   @Expose()
   name: string;
+
+  @Expose()
+  @Type(() => PermissionBasicDto)
+  permissions: PermissionBasicDto[];
 }
 
 export class PersonResponseDto {

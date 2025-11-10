@@ -114,7 +114,7 @@ export class RolesService {
         createRolePermissionsDto.permissions_uuid,
       );
 
-      if (!permissionResponse.success || !permissionResponse.data) {
+      if (!permissionResponse) {
         throw new InternalServerErrorException('Permission not found');
       }
 
@@ -128,7 +128,7 @@ export class RolesService {
         );
       }
 
-      role.permissions.push(permissionResponse.data);
+      role.permissions.push(permissionResponse);
       await this.roleRepository.save(role);
 
       return {

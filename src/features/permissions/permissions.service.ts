@@ -1,119 +1,116 @@
 import {
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
-import { CreatePermissionDto } from './dto/create-permission.dto';
-import { UpdatePermissionDto } from './dto/update-permission.dto';
-import { Permission } from './entities/permission.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Menus } from '../menu/entities/menu.entity';
-import { ServiceResponse } from 'src/common/interfaces/service-response.interface';
+import { Permission } from './entities/permission.entity';
+import { CreatePermissionDto } from './dto/create-permission.dto';
+import { UpdatePermissionDto } from './dto/update-permission.dto';
+import { MenuService } from '../menu/menu.service';
 
 @Injectable()
 export class PermissionsService {
   constructor(
     @InjectRepository(Permission)
     private readonly permissionRepository: Repository<Permission>,
-    @InjectRepository(Menus)
-    private readonly menuRepository: Repository<Menus>,
+    private readonly menuService: MenuService,
   ) {}
 
-  async create(
-    createPermissionDto: CreatePermissionDto,
-  ): Promise<ServiceResponse<Permission>> {
-    try {
-      const menu = await this.menuRepository.findOne({
-        where: { uuid: createPermissionDto.menu_uuid },
-      });
-      if (!menu) {
-        throw new NotFoundException('Menu not found');
-      }
-      const code = `${menu.code}.${createPermissionDto.action.toLocaleLowerCase()}`;
-      const existPermission = await this.permissionRepository.findOne({
-        where: {
-          name: createPermissionDto.name.toLocaleUpperCase(),
-          code: code,
-          isActive: true,
-        },
-      });
-      if (existPermission) {
-        throw new InternalServerErrorException('Permission already exists');
-      }
-      const newPermission = this.permissionRepository.create({
-        ...createPermissionDto,
-        code: code,
-        menu_uuid: menu.uuid,
-        resource: menu.code,
-      });
-      await this.permissionRepository.save(newPermission);
-      return {
-        success: true,
-        message: 'Permission created successfully',
-        data: newPermission,
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message ?? error);
+  async create(createPermissionDto: CreatePermissionDto): Promise<Permission> {
+    // Buscar el menú
+    const menu = await this.menuService.findByCode(
+      createPermissionDto.menuCode,
+    );
+
+    if (!menu) {
+      throw new NotFoundException(
+        `Menú con code ${createPermissionDto.menuCode} no encontrado`,
+      );
     }
+
+    // Generar código automáticamente: menu.code + '.' + action
+    const code = `${menu.code}.${createPermissionDto.action.toLowerCase()}`;
+
+    // Verificar si ya existe un permiso con ese código
+    const existingPermission = await this.permissionRepository.findOne({
+      where: { code },
+    });
+
+    if (existingPermission) {
+      throw new BadRequestException(
+        `Ya existe un permiso con el código ${code}`,
+      );
+    }
+
+    // Crear el permiso
+    const permission = this.permissionRepository.create({
+      name: createPermissionDto.name,
+      code: code,
+      description: createPermissionDto.description,
+      resource: menu.code, // CORREGIDO: Usar menu.code
+      action: createPermissionDto.action,
+      menu: menu,
+    });
+
+    return await this.permissionRepository.save(permission);
   }
 
-  async findAll(): Promise<ServiceResponse<Permission[]>> {
-    try {
-      const permissions = await this.permissionRepository.find();
-      return {
-        success: true,
-        message: 'Permissions retrieved successfully',
-        data: [...permissions],
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message ?? error);
-    }
+  async findAll(): Promise<Permission[]> {
+    return await this.permissionRepository.find({
+      where: { isActive: true },
+      relations: ['menu'],
+    });
   }
 
-  async findOne(id: string): Promise<ServiceResponse<Permission>> {
-    try {
-      const permission =
-        (await this.permissionRepository.findOne({ where: { uuid: id } })) ??
-        undefined;
-      if (!permission) {
-        throw new NotFoundException('Permission not found');
-      }
-      return {
-        success: true,
-        message: 'Permission retrieved successfully',
-        data: permission,
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message ?? error);
+  async findOne(uuid: string): Promise<Permission> {
+    const permission = await this.permissionRepository.findOne({
+      where: { uuid },
+      relations: ['menu'],
+    });
+
+    if (!permission) {
+      throw new NotFoundException(`Permiso con uuid ${uuid} no encontrado`);
     }
+
+    return permission;
+  }
+
+  async findByCode(code: string): Promise<Permission> {
+    const permission = await this.permissionRepository.findOne({
+      where: { code },
+      relations: ['menu'],
+    });
+
+    if (!permission) {
+      throw new NotFoundException(`Permiso con code ${code} no encontrado`);
+    }
+
+    return permission;
   }
 
   async update(
-    id: string,
+    uuid: string,
     updatePermissionDto: UpdatePermissionDto,
-  ): Promise<ServiceResponse<Permission>> {
-    const exit = await this.findOne(id);
-    if (!exit) {
-      throw new NotFoundException('Permission not found');
+  ): Promise<Permission> {
+    const permission = await this.findOne(uuid);
+
+    if (updatePermissionDto.menuCode) {
+      const menu = await this.menuService.findByCode(
+        updatePermissionDto.menuCode,
+      );
+      permission.menu = menu;
+      permission.resource = menu.code;
     }
-    await this.permissionRepository.update(id, updatePermissionDto);
-    return {
-      success: true,
-      message: 'This action updates a #' + id + ' permission',
-      data: exit.data,
-    };
+
+    Object.assign(permission, updatePermissionDto);
+    return await this.permissionRepository.save(permission);
   }
 
-  async remove(id: string): Promise<ServiceResponse<Permission>> {
-    const exit = await this.findOne(id);
-    if (!exit) {
-      throw new NotFoundException('Permission not found');
-    }
-    await this.permissionRepository.softDelete(id);
-    return {
-      success: true,
-      message: 'Permission deleted successfully',
-    };
+  async remove(uuid: string): Promise<void> {
+    const permission = await this.findOne(uuid);
+    permission.isActive = false;
+    await this.permissionRepository.save(permission);
   }
 }

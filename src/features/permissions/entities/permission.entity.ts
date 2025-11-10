@@ -13,7 +13,7 @@ import {
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
-@Entity()
+@Entity('permission')
 export class Permission {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
@@ -39,13 +39,20 @@ export class Permission {
   resource: string;
 
   @Expose()
-  @Column({ type: 'varchar', length: 50 })
-  action: string;
+  @Column({
+    type: 'enum',
+    enum: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
+  })
+  action: 'CREATE' | 'READ' | 'UPDATE' | 'DELETE';
 
+  // Relación con Menu
   @Expose()
-  @ManyToOne(() => Menus, { eager: true })
+  @ManyToOne(() => Menus, (menu) => menu.permissions, {
+    eager: true,
+    nullable: true,
+  })
   @JoinColumn({ name: 'menu_uuid', referencedColumnName: 'uuid' })
-  menu_uuid: string;
+  menu: Menus;
 
   @Expose()
   @Column({ name: 'is_active', type: 'boolean', default: true })

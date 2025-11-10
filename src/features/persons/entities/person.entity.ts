@@ -75,6 +75,10 @@ export class Person {
   role: Role;
 
   @Expose()
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  avatar: string;
+
+  @Expose()
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 

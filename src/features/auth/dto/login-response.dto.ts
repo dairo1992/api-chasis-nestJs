@@ -1,17 +1,36 @@
-class PermissionDto {
-  uuid: string;
-  name: string;
-  code: string;
-  resource: string;
-  action: string;
+interface NavigationResource {
+  resource: string; // 'users', 'companies', 'reports'
+  label: string; // 'Usuarios', 'Empresas'
+  icon?: string; // 'users', 'building'
+  route: string; // '/users', '/companies'
+  permissions: {
+    canCreate: boolean;
+    canRead: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
+  children?: NavigationResource[]; // Para submenús
 }
 
 export class LoginResponseDto {
-  user: string;
+  user: {
+    id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    avatar?: string;
+  };
+  role: {
+    id: string;
+    name: string;
+  };
+  company: {
+    id: string;
+    name: string;
+    logo?: string;
+  };
   access_token: string;
   refresh_token: string;
-  role: string;
-  company: string;
-  permissions: PermissionDto[];
-  session_id?: string;
+  session_id: string;
+  navigation: NavigationResource[];
 }

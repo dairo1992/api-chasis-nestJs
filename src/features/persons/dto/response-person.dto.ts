@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { Permission } from 'src/features/permissions/entities/permission.entity';
 
 class CompanyBasicDto {
   @Expose()
@@ -6,24 +7,27 @@ class CompanyBasicDto {
 
   @Expose()
   name: string;
+
+  @Expose()
+  logo_url: string;
 }
 
-class PermissionBasicDto {
-  @Expose()
-  uuid: string;
+// class PermissionBasicDto {
+//   @Expose()
+//   uuid: string;
 
-  @Expose()
-  name: string;
+//   @Expose()
+//   name: string;
 
-  @Expose()
-  code: string;
+//   @Expose()
+//   code: string;
 
-  @Expose()
-  resource: string;
+//   @Expose()
+//   resource: string;
 
-  @Expose()
-  action: string;
-}
+//   @Expose()
+//   action: string;
+// }
 
 class RoleBasicDto {
   @Expose()
@@ -33,8 +37,8 @@ class RoleBasicDto {
   name: string;
 
   @Expose()
-  @Type(() => PermissionBasicDto)
-  permissions: PermissionBasicDto[];
+  @Type(() => Permission)
+  permissions: Permission[];
 }
 
 export class PersonResponseDto {

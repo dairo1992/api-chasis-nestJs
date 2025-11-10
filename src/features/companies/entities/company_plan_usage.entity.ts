@@ -33,18 +33,6 @@ export class CompanyPlanUsage {
   plan: SubscriptionPlan;
 
   @Expose()
-  @Column({ name: 'max_branches_per_company', type: 'int', default: 0 })
-  max_branches_per_company: number;
-
-  @Expose()
-  @Column({ name: 'max_users_per_company', type: 'int', default: 0 })
-  max_users_per_company: number;
-
-  @Expose()
-  @Column({ name: 'max_roles_per_company', type: 'int', default: 0 })
-  max_roles_per_company: number;
-
-  @Expose()
   @Column({ name: 'current_branches_count', type: 'int', default: 0 })
   current_branches_count: number;
 

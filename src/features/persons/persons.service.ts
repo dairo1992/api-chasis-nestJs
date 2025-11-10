@@ -41,6 +41,7 @@ export class PersonsService {
       const planUsage = await this.companyPlanUsageRepository.findOne({
         where: { company: { uuid: createPersonDto.company_uuid } },
       });
+
       if (planUsage!.current_users_count >= planUsage!.max_users_per_company) {
         throw new InternalServerErrorException(
           'User limit exceeded for the company plan',

@@ -2,12 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
-import { Company } from '../../companies/entities/company.entity';
 
 export enum AuditLogStatus {
   SUCCESS = 'SUCCESS',
@@ -19,16 +15,8 @@ export class AuditLog {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
   id: number;
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'user_id' })
-  userId: number;
-
-  @Column({
-    type: 'bigint',
-    unsigned: true,
-    nullable: true,
-    name: 'company_id',
-  })
-  companyId: number;
+  @Column({ type: 'char', length: 36, name: 'session_id' })
+  sessionId: string;
 
   @Column({ type: 'varchar', length: 100 })
   action: string;
@@ -72,12 +60,4 @@ export class AuditLog {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
-
-  @ManyToOne(() => User, { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
-  @ManyToOne(() => Company, { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'company_id' })
-  company: Company;
 }

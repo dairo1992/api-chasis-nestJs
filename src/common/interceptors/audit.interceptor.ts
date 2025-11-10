@@ -4,6 +4,7 @@ import {
   Injectable,
   NestInterceptor,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
@@ -36,7 +37,12 @@ export class AuditInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
-    const { method, url, body, user, params } = request;
+    const { method, url, body } = request;
+    const sessionId = request.headers['session-id'];
+
+    if (!sessionId) {
+      throw new BadRequestException('Session ID is required');
+    }
 
     // Determinar la acción basada en el método HTTP
     const action = HTTP_METHOD_TO_ACTION[method] ?? AuditAction.READ;
@@ -53,14 +59,19 @@ export class AuditInterceptor implements NestInterceptor {
       tap({
         next: (response) => {
           // Registrar auditoría de forma asíncrona sin bloquear la respuesta
-          this.logAudit(request, action, resourceInfo, body, response).catch(
-            (error) => {
-              this.logger.error(
-                `Error al registrar auditoría: ${error.message}`,
-                error.stack,
-              );
-            },
-          );
+          this.logAudit(
+            request,
+            action,
+            resourceInfo,
+            body,
+            response,
+            sessionId as string,
+          ).catch((error) => {
+            this.logger.error(
+              `Error al registrar auditoría: ${error.message}`,
+              error.stack,
+            );
+          });
         },
       }),
       catchError((error) => {
@@ -113,13 +124,11 @@ export class AuditInterceptor implements NestInterceptor {
     resourceInfo: { resourceType: string; endpoint: string },
     body: any,
     response: any,
+    sessionId: string,
   ): Promise<void> {
-    const { user } = request;
-
     try {
       await this.auditLogsService.create({
-        userId: user?.id,
-        companyId: user?.person?.company.id,
+        sessionId,
         action,
         resourceType: resourceInfo.resourceType,
         endpoint: resourceInfo.endpoint,
@@ -145,12 +154,11 @@ export class AuditInterceptor implements NestInterceptor {
     body: any,
     error: any,
   ): Promise<void> {
-    const { user } = request;
+    const sessionId = request.headers['session-id'] as string;
 
     try {
       await this.auditLogsService.create({
-        userId: user?.id,
-        companyId: user?.person?.company.id,
+        sessionId,
         action,
         resourceType: resourceInfo.resourceType,
         endpoint: resourceInfo.endpoint,

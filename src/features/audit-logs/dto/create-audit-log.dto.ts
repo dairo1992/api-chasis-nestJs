@@ -1,8 +1,7 @@
 import { AuditLogStatus } from '../entities/audit-log.entity';
 
 export class CreateAuditLogDto {
-  userId?: number;
-  companyId?: number;
+  sessionId: string;
   action: string;
   resourceType?: string;
   endpoint?: string;

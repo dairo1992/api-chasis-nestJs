@@ -33,16 +33,11 @@ const HTTP_METHOD_TO_ACTION: Record<string, AuditAction> = {
 export class AuditInterceptor implements NestInterceptor {
   private readonly logger = new Logger(AuditInterceptor.name);
 
-  constructor(private readonly auditLogsService: AuditLogsService) {}
+  constructor(private readonly auditLogsService: AuditLogsService) { }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     const { method, url, body } = request;
-    const sessionId = request.headers['session-id'];
-
-    if (!sessionId) {
-      throw new BadRequestException('Session ID is required');
-    }
 
     // Determinar la acción basada en el método HTTP
     const action = HTTP_METHOD_TO_ACTION[method] ?? AuditAction.READ;
@@ -54,6 +49,16 @@ export class AuditInterceptor implements NestInterceptor {
 
     // Extraer información del recurso
     const resourceInfo = this.extractResourceInfo(url);
+
+    const sessionId = request.headers['session-id'] ?? '';
+
+    if (
+      sessionId === '' &&
+      resourceInfo.resourceType !== 'auth' &&
+      resourceInfo.endpoint !== ''
+    ) {
+      throw new BadRequestException('Session ID is required');
+    }
 
     return next.handle().pipe(
       tap({

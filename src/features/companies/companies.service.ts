@@ -44,9 +44,6 @@ export class CompaniesService {
         company: newCompany,
         plan: existPlan,
         startDate: new Date(),
-        max_branches_per_company: existPlan.max_branches_per_company,
-        max_users_per_company: existPlan.max_users_per_company,
-        max_roles_per_company: existPlan.max_roles_per_company,
       });
       await this.companyPlanUsageRepository.save(newPlanUsage);
 

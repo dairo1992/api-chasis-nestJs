@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Company } from '../companies/entities/company.entity';
 import { CompanyPlanUsage } from '../companies/entities/company_plan_usage.entity';
+import { SubscriptionPlansService } from '../subscription_plans/subscription_plans.service';
 
 @Injectable()
 export class BranchesService {
@@ -17,6 +18,7 @@ export class BranchesService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(CompanyPlanUsage)
     private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
+    private readonly planService: SubscriptionPlansService,
   ) { }
 
   async create(
@@ -52,7 +54,11 @@ export class BranchesService {
         );
       }
 
-      if (existCompany.branches.length >= activePlan.max_branches_per_company) {
+      const plan = await this.planService
+        .findOne(activePlan.plan.uuid)
+        .then((plan) => plan.data);
+
+      if (existCompany.branches.length >= plan!.max_branches_per_company) {
         throw new InternalServerErrorException(
           'Branch limit reached for the current plan',
         );

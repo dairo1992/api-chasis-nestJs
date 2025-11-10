@@ -12,6 +12,7 @@ import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { PersonResponseDto } from './dto/response-person.dto';
 import { plainToInstance } from 'class-transformer';
+import { SubscriptionPlansService } from '../subscription_plans/subscription_plans.service';
 
 @Injectable()
 export class PersonsService {
@@ -25,7 +26,8 @@ export class PersonsService {
     @InjectRepository(CompanyPlanUsage)
     private readonly companyPlanUsageRepository: Repository<CompanyPlanUsage>,
     private readonly userService: UserService,
-  ) {}
+    private readonly planService: SubscriptionPlansService,
+  ) { }
 
   async create(
     createPersonDto: CreatePersonDto,
@@ -42,7 +44,11 @@ export class PersonsService {
         where: { company: { uuid: createPersonDto.company_uuid } },
       });
 
-      if (planUsage!.current_users_count >= planUsage!.max_users_per_company) {
+      const plan = await this.planService
+        .findOne(company.planUsages.plan.uuid)
+        .then((plan) => plan.data);
+
+      if (planUsage!.current_users_count >= plan!.max_users_per_company) {
         throw new InternalServerErrorException(
           'User limit exceeded for the company plan',
         );
